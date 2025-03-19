@@ -1,8 +1,8 @@
 VERSION = 1,
 
-option ZM_KesempatanKedua.option
+option ZM_Mungkinkah.option
 {
     type = string,
-    default = Second Chance,
-    page = SecondChance
+    default = 1,
+    page = Mungkinkah
 }
