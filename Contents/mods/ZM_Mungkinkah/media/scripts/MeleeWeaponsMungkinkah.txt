@@ -1,0 +1,32 @@
+module Base
+{
+    item Mungkinkah_ini_Axe_1
+    {
+        DisplayName = "Custom Axe",
+        Type = Weapon,
+        WeaponSprite = Axe,
+        MinAngle = 0.2,
+        MaxDamage = 2.5,
+        MinDamage = 1.5,
+        Weight = 3,
+        MaxRange = 1.5,
+        BaseSpeed = 1,
+        KnockBackOnNoDeath = TRUE,
+        SwingTime = 4,
+        MinRange = 0.61,
+        AngleFalloff = TRUE,
+        UseEndurance = 15,
+        CriticalChance = 20,
+        DoorDamage = 35,
+        TreeDamage = 15,
+        KnockdownMod = 2,
+        SplatNumber = 3,
+        ConditionLowerChanceOneIn = 20,
+        Icon = Axe,
+        SubCategory = Swinging,
+        AttachmentType = Axe,
+        TwoHandWeapon = TRUE,
+        PhysicsObject = Axe,
+        Categories = Axe,
+    }
+}
