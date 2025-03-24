@@ -101,9 +101,42 @@ function ISEnchantWeaponUI:onClick(button)
       return
   end
 
-  -- Get current enchantment level
+  -- Get player and weapon with proper validation
+  local player = getSpecificPlayer(0)
+  if not player then
+      self.statusText = "Error: Player not found"
+      self.statusColor = {r=1, g=0.3, b=0.3}
+      return
+  end
+
+  -- Get the weapon from player's hands - THIS WAS MISSING
+  local weapon = player:getPrimaryHandItem()
+
+  -- Check if weapon exists and is a weapon
+  if not weapon or not weapon:IsWeapon() then
+      self.statusText = "No weapon in hand!"
+      self.statusColor = {r=1, g=0.3, b=0.3}
+      return
+  end
+
+  -- Check if it's a melee weapon that needs the "Legend" requirement
+  local isMelee = not weapon:isRanged()
+  if isMelee then
+      local weaponName = weapon:getName() or ""
+      if not string.find(weaponName, "Legend") then
+          self.statusText = "Only legendary melee weapons can be enchanted!"
+          self.statusColor = {r=1, g=0.3, b=0.3}
+          return
+      end
+  end
+
+  -- Get username for points check and payment
+  local username = player:getUsername() or "Player"
+  local pointCost = 2500
+
+  -- Get current enchantment level - with safe access
   local enchantLevel = 0
-  if weapon:getModData().enchantmentStats then
+  if weapon:getModData() and weapon:getModData().enchantmentStats then
       enchantLevel = weapon:getModData().enchantmentStats.enchantCounter or 0
   end
   local absLevel = math.abs(enchantLevel)
@@ -119,11 +152,8 @@ function ISEnchantWeaponUI:onClick(button)
   end
 
   -- Deduct points
-  if not GlobalMethods.takePlayerPoints(username, pointCost) then
-      self.statusText = "Failed to deduct points. Try again."
-      self.statusColor = {r=1, g=0.3, b=0.3}
-      return
-  end
+  GlobalMethods.takePlayerPoints(username, pointCost)
+
 
   -- Perform enchantment logic on the client - now affecting both damage values
   local isPositive = ZombRand(2) == 0 -- 50% chance of positive outcome
