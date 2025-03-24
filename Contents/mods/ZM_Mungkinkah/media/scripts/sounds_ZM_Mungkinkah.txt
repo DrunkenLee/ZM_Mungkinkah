@@ -1,0 +1,24 @@
+module Base
+{
+    sound rganvil
+    {
+        category = UI,
+        clip
+        {
+            file = media/sound/rganvil.ogg,
+            distanceMax = 20,
+            volume = 1.0,
+        }
+    }
+
+    sound rganvilsuccess
+    {
+        category = UI,
+        clip
+        {
+            file = media/sound/rganvilsuccess.ogg,
+            distanceMax = 20,
+            volume = 1.0,
+        }
+    }
+}
