@@ -49,75 +49,113 @@ function ISEnchantWeaponUI:createChildren()
     self.enchantResult = nil
 end
 
--- Button click handler
+-- Add this helper function to rename weapons after enchantment
+function ISEnchantWeaponUI:renameEnchantedWeapon(weapon, username, isPositive)
+  if not weapon then return end
+
+  -- Initialize ModData for enchantment tracking if needed
+  if not weapon:getModData().enchantmentStats then
+      weapon:getModData().enchantmentStats = {
+          enchantCounter = 0,
+          originalName = weapon:getName()
+      }
+  end
+
+  -- Get original name or current base name
+  local baseName = weapon:getModData().enchantmentStats.originalName
+
+  -- Update enchant counter (increment for positive, decrement for negative)
+  -- Respect the +10/-10 limits
+  if isPositive then
+      if weapon:getModData().enchantmentStats.enchantCounter < 10 then
+          weapon:getModData().enchantmentStats.enchantCounter = weapon:getModData().enchantmentStats.enchantCounter + 1
+      end
+  else
+      if weapon:getModData().enchantmentStats.enchantCounter > -10 then
+          weapon:getModData().enchantmentStats.enchantCounter = weapon:getModData().enchantmentStats.enchantCounter - 1
+      end
+  end
+
+  -- Get current counter value
+  local counter = weapon:getModData().enchantmentStats.enchantCounter
+
+  -- Rename based on counter value
+  if counter > 0 then
+      -- Positive enchantment level
+      weapon:setName(baseName .. "_" .. username .. "_+" .. counter)
+  elseif counter < 0 then
+      -- Negative enchantment level (use absolute value for display)
+      weapon:setName(baseName .. "_" .. username .. "_-" .. math.abs(counter))
+  else
+      -- Counter is zero - reset to original name
+      weapon:setName(baseName)
+  end
+
+  print("DEBUG: Weapon renamed to: " .. weapon:getName())
+  return counter
+end
+
 function ISEnchantWeaponUI:onClick(button)
   if button.internal == "CLOSE" then
       self:close()
       return
   end
 
-  -- Get player and weapon
-  local player = getSpecificPlayer(0)
-  if not player then
-      print("DEBUG: Error - Player is nil in onClick")
-      return
+  -- Get current enchantment level
+  local enchantLevel = 0
+  if weapon:getModData().enchantmentStats then
+      enchantLevel = weapon:getModData().enchantmentStats.enchantCounter or 0
   end
+  local absLevel = math.abs(enchantLevel)
 
-  local weapon = player:getPrimaryHandItem()
-
-  -- Check if it's a weapon
-  if not weapon or not weapon:IsWeapon() then
-      self.statusText = "No weapon in hand!"
-      self.statusColor = {r=1, g=0.3, b=0.3}
-      return
-  end
-
-  -- Check player points
-  local username = player:getUsername()
-  local pointCost = 2500
-  local playerPoints = GlobalMethods.getPlayerPoints(username)
-
-  -- Retry once if the first attempt returns 0 or nil
-  if not playerPoints or playerPoints == 0 then
-      playerPoints = GlobalMethods.getPlayerPoints(username)
-  end
-
-  -- Validate points
-  if not playerPoints or playerPoints < pointCost then
-      self.statusText = "Not enough points! Need " .. pointCost .. " points."
-      self.statusColor = {r=1, g=0.3, b=0.3}
-      return
+  -- Determine damage cap based on absolute enchantment level
+  local damageCap = 0.2 -- Base cap is 30%
+  if absLevel >= 3 and absLevel < 5 then
+      damageCap = 0.4 -- 50% for +3 to +4
+  elseif absLevel >= 5 and absLevel < 7 then
+      damageCap = 0.6 -- 70% for +5 to +6
+  elseif absLevel >= 7 then
+      damageCap = 0.8 -- 100% for +7 and beyond
   end
 
   -- Deduct points
-  GlobalMethods.takePlayerPoints(username, pointCost)
+  if not GlobalMethods.takePlayerPoints(username, pointCost) then
+      self.statusText = "Failed to deduct points. Try again."
+      self.statusColor = {r=1, g=0.3, b=0.3}
+      return
+  end
 
-  -- Perform enchantment logic on the client
-  local damageType = ZombRand(2) == 0 and "minDamage" or "maxDamage"
-  local isPositive = ZombRand(2) == 0
+  -- Perform enchantment logic on the client - now affecting both damage values
+  local isPositive = ZombRand(2) == 0 -- 50% chance of positive outcome
   local damageRoll = ZombRand(1, 21) -- Random roll between 1 and 20
   local minDamage = weapon:getMinDamage()
   local maxDamage = weapon:getMaxDamage()
-  local currentDamage = damageType == "minDamage" and minDamage or maxDamage
-  local newDamage = isPositive and (currentDamage + damageRoll / 20) or (currentDamage - damageRoll / 20)
 
-  -- Special case handling
-  if damageType == "minDamage" and isPositive then
-      -- If minimum damage would exceed maximum damage, increase maximum damage instead
-      if newDamage > maxDamage then
-          damageType = "maxDamage"
-          currentDamage = maxDamage
-          newDamage = maxDamage + damageRoll / 20
-      end
-  elseif damageType == "maxDamage" and not isPositive then
-      -- If maximum damage would go below minimum damage, decrease minimum damage instead
-      if newDamage < minDamage then
-          damageType = "minDamage"
-          currentDamage = minDamage
-          newDamage = minDamage - damageRoll / 20
-          -- Ensure minimum damage doesn't go negative
-          if newDamage < 0 then newDamage = 0 end
-      end
+  -- Apply the dynamic cap to damage change based on enchantment level
+  local damageChange = math.min(damageRoll / 20, damageCap)
+
+  -- Store original values for UI display
+  local origMinDamage = minDamage
+  local origMaxDamage = maxDamage
+
+  -- Apply changes to both min and max damage
+  if isPositive then
+      -- Positive outcome: increase both damages
+      minDamage = minDamage + damageChange
+      maxDamage = maxDamage + damageChange
+  else
+      -- Negative outcome: decrease both damages
+      minDamage = minDamage - damageChange
+      -- Ensure minimum damage doesn't go negative
+      if minDamage < 0 then minDamage = 0 end
+      maxDamage = maxDamage - damageChange
+      -- Ensure maximum damage doesn't go negative
+      if maxDamage < 0 then maxDamage = 0 end
+  end
+
+  -- Ensure min damage is always less than or equal to max damage
+  if minDamage > maxDamage then
+      minDamage = maxDamage
   end
 
   -- Play different sounds based on outcome
@@ -143,38 +181,44 @@ function ISEnchantWeaponUI:onClick(button)
   })
 
   -- Update weapon stats
-  if damageType == "minDamage" then
-      weapon:setMinDamage(newDamage)
-  else
-      weapon:setMaxDamage(newDamage)
-  end
+  weapon:setMinDamage(minDamage)
+  weapon:setMaxDamage(maxDamage)
 
-  -- Store enchantment result for UI
+  -- Rename weapon based on enchantment outcome
+  local newLevel = self:renameEnchantedWeapon(weapon, username, isPositive)
+
+  -- Store enchantment result for UI - now includes both damage types
   self.enchantResult = {
-      damageType = damageType,
       isPositive = isPositive,
       damageRoll = damageRoll,
-      newDamage = math.floor(newDamage * 10) / 10, -- Round to 1 decimal
-      currentDamage = math.floor(currentDamage * 10) / 10 -- Round to 1 decimal
+      damageChange = damageChange,
+      damageCap = damageCap,
+      enchantLevel = newLevel,
+      newMinDamage = math.floor(minDamage * 10) / 10,
+      newMaxDamage = math.floor(maxDamage * 10) / 10,
+      origMinDamage = math.floor(origMinDamage * 10) / 10,
+      origMaxDamage = math.floor(origMaxDamage * 10) / 10
   }
 
-  -- Update status text
-  local damageTypeText = damageType == "minDamage" and "minimum" or "maximum"
+  -- Update status text showing changes to both damage types
   if isPositive then
-      self.statusText = "Success! " .. damageTypeText .. " damage increased by " .. (damageRoll / 20)
+      self.statusText = "Success! Damage increased by (Cap: " .. damageCap .. ")"
       self.statusColor = {r=0.3, g=1, b=0.3}
   else
-      self.statusText = "Caution! " .. damageTypeText .. " damage decreased by " .. (damageRoll / 20)
+      self.statusText = "Caution! Damage decreased by (Cap: " .. damageCap .. ")"
       self.statusColor = {r=1, g=0.5, b=0.2}
   end
 
   -- Sync changes to the server
   sendClientCommand("EnchantWeapon", "syncEnchantment", {
       weaponID = weapon:getID(),
-      damageType = damageType,
       isPositive = isPositive,
       damageRoll = damageRoll,
-      newDamage = newDamage
+      damageChange = damageChange,
+      damageCap = damageCap,
+      enchantLevel = newLevel,
+      minDamage = minDamage,
+      maxDamage = maxDamage
   })
 
   print("DEBUG: Enchantment applied and synced to server")
@@ -403,20 +447,20 @@ function ISEnchantWeaponUI:prerender()
                 1, UIFont.Small)
 
     -- Adjusted enchantment result position
+-- In the prerender function, update this section:
     if self.enchantResult then
-        local resultY = priceInfoY + 30
-        local damageTypeText = self.enchantResult.damageType == "minDamage" and "Minimum" or "Maximum"
-        local changeText = self.enchantResult.isPositive and "increased" or "decreased"
-        local changeAmount = self.enchantResult.damageRoll / 20
+      local resultY = priceInfoY + 30
+      local changeText = self.enchantResult.isPositive and "increased" or "decreased"
+      local changeAmount = math.floor(self.enchantResult.damageChange * 100) / 100
 
-        local resultText = "Last roll: " .. damageTypeText .. " damage " .. changeText .. " by " .. changeAmount
-        self:drawText(resultText,
-                    self.width/2 - getTextManager():MeasureStringX(UIFont.Small, resultText)/2,
-                    resultY,
-                    self.enchantResult.isPositive and 0.3 or 1,
-                    self.enchantResult.isPositive and 1 or 0.5,
-                    self.enchantResult.isPositive and 0.3 or 0.2,
-                    1, UIFont.Small)
+      local resultText = "Last roll: Both damages " .. changeText .. " by " .. changeAmount
+      self:drawText(resultText,
+                  self.width/2 - getTextManager():MeasureStringX(UIFont.Small, resultText)/2,
+                  resultY,
+                  self.enchantResult.isPositive and 0.3 or 1,
+                  self.enchantResult.isPositive and 1 or 0.5,
+                  self.enchantResult.isPositive and 0.3 or 0.2,
+                  1, UIFont.Small)
     end
 end
 
