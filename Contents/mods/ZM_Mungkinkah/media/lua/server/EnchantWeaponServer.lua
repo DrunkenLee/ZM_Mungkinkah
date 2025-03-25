@@ -3,7 +3,7 @@ if isClient() then return end
 -- Handle enchantment requests
 local function onClientCommand(module, command, player, data)
     -- Extensive debugging for tracking
-    print("[ZM_EnchantWeaponServer] Received command: " .. tostring(module) .. " / " .. tostring(command))
+    -- print("[ZM_EnchantWeaponServer] Received command: " .. tostring(module) .. " / " .. tostring(command))
 
     -- Handle sound broadcast request
     if module == "ZM_Mungkinkah" and command == "PlayWorldSound" then
