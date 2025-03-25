@@ -1,3 +1,5 @@
+ZMBanditHandler = {}
+
 -- Spawns multiple powerful bandits at the specified coordinates
 -- @param count - number of bandits to spawn
 -- @param x - x coordinate (optional - uses player position if nil)
@@ -45,15 +47,15 @@ function ZMBanditHandler.spawnMultipleBandits(count, x, y, player)
       bandit.primary.bulletsLeft = 15
 
       bandit.secondary = {}
-      bandit.secondary.name = "Base.Pistol" -- Fixed - was using primary instead of secondary
+      bandit.secondary.name = "Base.Pistol"
       bandit.secondary.magSize = 15
       bandit.secondary.magCount = 3
-      bandit.secondary.bulletsLeft = 15 -- Full magazine
+      bandit.secondary.bulletsLeft = 15
 
       bandit.hairStyle = "Fabian"
-      bandit.hairColor = {r=0.1, g=0.2, b=0.3} -- Fixed syntax error in b value
+      bandit.hairColor = {r=0.1, g=0.2, b=0.3}
       bandit.beardStyle = "Fabian"
-      bandit.beardColor = {r=0.1, g=0.2, b=0.3} -- Fixed syntax error in b value
+      bandit.beardColor = {r=0.1, g=0.2, b=0.3}
 
       table.insert(event.bandits, bandit)
   end
@@ -61,7 +63,3 @@ function ZMBanditHandler.spawnMultipleBandits(count, x, y, player)
   sendClientCommand(player, 'Commands', 'SpawnGroup', event)
   return true
 end
-
--- Example usage:
--- local player = getSpecificPlayer(0)
--- ZMBanditHandler.spawnMultipleBandits(5, nil, nil, player) -- Spawn 5 bandits at player position
