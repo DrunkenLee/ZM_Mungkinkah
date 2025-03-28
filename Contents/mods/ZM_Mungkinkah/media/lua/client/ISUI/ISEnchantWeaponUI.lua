@@ -130,6 +130,13 @@ function ISEnchantWeaponUI:onClick(button)
       end
   end
 
+  -- Check if weapon is already at maximum enchantment level (+10)
+  if weapon:getModData() and weapon:getModData().enchantmentStats and
+     weapon:getModData().enchantmentStats.enchantCounter == 10 then
+      self.statusText = "Weapon is too fragile for further enchantment (+10)!"
+      self.statusColor = {r=1, g=0.6, b=0.1}
+      return
+  end
   -- Get username for points check and payment
   local username = player:getUsername() or "Player"
   local pointCost = 2500
@@ -156,7 +163,7 @@ function ISEnchantWeaponUI:onClick(button)
 
 
   -- Perform enchantment logic on the client - now affecting both damage values
-  local isPositive = ZombRand(2) == 0 -- 50% chance of positive outcome
+  local isPositive = ZombRand(10) < 6 -- 60% chance of positive outcome
   local damageRoll = ZombRand(1, 21) -- Random roll between 1 and 20
   local minDamage = weapon:getMinDamage()
   local maxDamage = weapon:getMaxDamage()
@@ -586,7 +593,7 @@ local function ZM_SoundServerResponse(module, command, args)
       -- Play sound as music (similar to airdrop mod)
       -- getSoundManager():PlayAsMusic(sound, sound, false, volume)
 
-      print("[ZM_Mungkinkah] Playing sound: " .. sound .. " at volume: " .. volume)
+      -- print("[ZM_Mungkinkah] Playing sound: " .. sound .. " at volume: " .. volume)
   end
 end
 

@@ -40,7 +40,7 @@ local function onClientCommand(module, command, player, data)
                     -- Send command to this specific player
                     local sound = getSoundManager():PlaySound("rganvil", false, 0);
                     getSoundManager():PlayAsMusic("rganvil", sound, false, 0);
-                    sound:setVolume(0.1);
+                    -- sound:setVolume(0.1);
 
                     sendServerCommand(playerObj, "ZM_Mungkinkah", "PlayWorldSound", {
                         x = x,
@@ -82,6 +82,7 @@ local function onClientCommand(module, command, player, data)
 
         -- Get player from ID
         local playerObj = getPlayerByOnlineID(playerID)
+        print("[ZM_EnchantWeaponServer] Player ID: " .. tostring(playerID))
         if not playerObj then
             print("[ZM_EnchantWeaponServer] ERROR: Player not found!")
             return
@@ -175,61 +176,74 @@ local function onClientCommand(module, command, player, data)
     end
 
     if module == "EnchantWeapon" and command == "syncEnchantment" then
-        print("[ZM_EnchantWeaponServer] Processing enchantment sync from client")
+      print("[ZM_EnchantWeaponServer] Processing enchantment sync from client")
 
-        -- Get the weapon
-        local weaponID = data.weaponID
-        local damageType = data.damageType
-        local isPositive = data.isPositive
-        local damageRoll = data.damageRoll
-        local newDamage = data.newDamage
+      -- Get the weapon
+      local weaponID = data.weaponID
+      local isPositive = data.isPositive
+      local damageRoll = data.damageRoll
+      local damageChange = data.damageChange or (damageRoll / 20)
+      local minDamage = data.minDamage
+      local maxDamage = data.maxDamage
 
-        print("[ZM_EnchantWeaponServer] Weapon ID: " .. tostring(weaponID) .. ", Damage Type: " .. tostring(damageType) ..
-              ", Positive: " .. tostring(isPositive) .. ", Roll: " .. tostring(damageRoll) .. ", New Damage: " .. tostring(newDamage))
+      print("[ZM_EnchantWeaponServer] Weapon ID: " .. tostring(weaponID) ..
+            ", Positive: " .. tostring(isPositive) ..
+            ", Roll: " .. tostring(damageRoll) ..
+            ", Min: " .. tostring(minDamage) ..
+            ", Max: " .. tostring(maxDamage))
 
-        -- Get player object
-        local playerObj = getPlayerByOnlineID(player:getOnlineID())
-        if not playerObj then
-            print("[ZM_EnchantWeaponServer] ERROR: Player not found!")
-            return
-        end
+      -- Get player object
+      local playerObj = getPlayerByOnlineID(player:getOnlineID())
 
-        -- Get weapon from inventory
-        local inventory = playerObj:getInventory()
-        local weapon = inventory:getItemById(weaponID)
-        if not weapon then
-            print("[ZM_EnchantWeaponServer] ERROR: Weapon not found!")
-            return
-        end
+      if not playerObj then
+          print("[ZM_EnchantWeaponServer] ERROR: Player not found!")
+          return
+      end
 
-        -- Validate and apply the changes
-        local currentDamage = damageType == "minDamage" and weapon:getMinDamage() or weapon:getMaxDamage()
-        if math.abs(newDamage - currentDamage) <= (damageRoll / 20) then
-            if damageType == "minDamage" then
-                weapon:setMinDamage(newDamage)
-            else
-                weapon:setMaxDamage(newDamage)
-            end
+      -- Get weapon from inventory
+      local inventory = playerObj:getInventory()
+      local weapon = inventory:getItemById(weaponID)
+      if not weapon then
+          local primaryItem = playerObj:getPrimaryHandItem()
+          if primaryItem and primaryItem:getID() == weaponID then
+              weapon = primaryItem
+          else
+              print("[ZM_EnchantWeaponServer] ERROR: Weapon not found in inventory or primary hand!")
+              return
+          end
+      end
 
-            -- Mark as enchanted
-            if not weapon:getModData().enchantments then
-                weapon:getModData().enchantments = {}
-            end
-            weapon:getModData().enchantments[damageType] = isPositive
-            weapon:getModData().enchanted = true
+      -- Validate and apply the changes to both min and max damage
+      local currentMinDamage = weapon:getMinDamage()
+      local currentMaxDamage = weapon:getMaxDamage()
 
-            print("[ZM_EnchantWeaponServer] Enchantment applied successfully")
-        else
-            print("[ZM_EnchantWeaponServer] ERROR: Invalid enchantment data from client!")
-        end
+      -- Only apply if changes are within acceptable range
+      if math.abs(minDamage - currentMinDamage) <= damageChange and
+         math.abs(maxDamage - currentMaxDamage) <= damageChange then
 
-        -- Acknowledge the sync
-        sendServerCommand(playerObj, "EnchantWeapon", "syncAcknowledged", {
-            weaponID = weaponID,
-            damageType = damageType,
-            isPositive = isPositive,
-            newDamage = newDamage
-        })
+          weapon:setMinDamage(minDamage)
+          weapon:setMaxDamage(maxDamage)
+
+          -- Mark as enchanted
+          if not weapon:getModData().enchantments then
+              weapon:getModData().enchantments = {}
+          end
+          weapon:getModData().enchantments["minDamage"] = isPositive
+          weapon:getModData().enchantments["maxDamage"] = isPositive
+          weapon:getModData().enchanted = true
+
+          print("[ZM_EnchantWeaponServer] Enchantment applied successfully")
+      else
+          print("[ZM_EnchantWeaponServer] ERROR: Invalid enchantment data from client! Changes too large.")
+      end
+
+      -- Acknowledge the sync
+      sendServerCommand(playerObj, "EnchantWeapon", "syncAcknowledged", {
+          weaponID = weaponID,
+          isPositive = isPositive,
+          minDamage = minDamage,
+          maxDamage = maxDamage
+      })
     end
 end
 
