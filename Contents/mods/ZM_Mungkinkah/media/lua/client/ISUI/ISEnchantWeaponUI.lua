@@ -597,6 +597,65 @@ local function ZM_SoundServerResponse(module, command, args)
   end
 end
 
+local function onEquipPrimary(player, item)
+  if not item or not item:IsWeapon() then return end
+
+  -- Check if this weapon has enchantment data
+  if item:getModData() and item:getModData().enchantmentStats then
+      -- Get the stored damage values from ModData if they exist
+      if not item:getModData().savedDamageValues then return end
+
+      local savedMinDamage = item:getModData().savedDamageValues.minDamage
+      local savedMaxDamage = item:getModData().savedDamageValues.maxDamage
+
+      -- Reapply the enchanted damage values
+      if savedMinDamage and savedMaxDamage then
+          item:setMinDamage(savedMinDamage)
+          item:setMaxDamage(savedMaxDamage)
+          print("[ZM_Mungkinkah] Restored enchanted damage values for: " .. item:getName())
+      end
+  end
+end
+
+-- Save damage values when enchanting
+local originalRenameFunction = ISEnchantWeaponUI.renameEnchantedWeapon
+ISEnchantWeaponUI.renameEnchantedWeapon = function(self, weapon, username, isPositive)
+  local counter = originalRenameFunction(self, weapon, username, isPositive)
+
+  -- Store the current damage values in ModData for restoration
+  if not weapon:getModData().savedDamageValues then
+      weapon:getModData().savedDamageValues = {}
+  end
+
+  weapon:getModData().savedDamageValues.minDamage = weapon:getMinDamage()
+  weapon:getModData().savedDamageValues.maxDamage = weapon:getMaxDamage()
+
+  print("[ZM_Mungkinkah] Saved enchanted damage values: Min=" ..
+        weapon:getMinDamage() .. ", Max=" .. weapon:getMaxDamage())
+
+  return counter
+end
+
+-- Register for equipment change events
+Events.OnEquipPrimary.Add(onEquipPrimary)
+Events.OnGameStart.Add(function()
+  -- Restore enchantments on game start for equipped weapon
+  local player = getSpecificPlayer(0)
+  if player then
+      local primaryItem = player:getPrimaryHandItem()
+      if primaryItem then
+          onEquipPrimary(player, primaryItem)
+      end
+  end
+end)
+
+-- For firearms, also listen to OnWeaponSwing event
+Events.OnWeaponSwing.Add(function(character, weapon)
+  if character:isLocalPlayer() and weapon then
+      onEquipPrimary(character, weapon)
+  end
+end)
+
 -- Register the sound handler
 Events.OnServerCommand.Remove(ZM_SoundServerResponse)
 Events.OnServerCommand.Add(ZM_SoundServerResponse)
