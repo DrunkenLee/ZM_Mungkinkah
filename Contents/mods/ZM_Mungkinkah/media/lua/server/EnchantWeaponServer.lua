@@ -183,8 +183,10 @@ local function onClientCommand(module, command, player, data)
       local isPositive = data.isPositive
       local damageRoll = data.damageRoll
       local damageChange = data.damageChange or (damageRoll / 20)
+      local damageCap = data.damageCap or 0.8
       local minDamage = data.minDamage
       local maxDamage = data.maxDamage
+      local enchantLevel = data.enchantLevel or 0
 
       print("[ZM_EnchantWeaponServer] Weapon ID: " .. tostring(weaponID) ..
             ", Positive: " .. tostring(isPositive) ..
@@ -217,9 +219,18 @@ local function onClientCommand(module, command, player, data)
       local currentMinDamage = weapon:getMinDamage()
       local currentMaxDamage = weapon:getMaxDamage()
 
+      -- Use more flexible validation - allow up to 1.5x the damage cap as the maximum change
+      local validationMultiplier = 1.5
+      local maxAllowedChange = damageCap * validationMultiplier
+
+      print("[ZM_EnchantWeaponServer] Current values - Min: " .. currentMinDamage .. ", Max: " .. currentMaxDamage)
+      print("[ZM_EnchantWeaponServer] New values - Min: " .. minDamage .. ", Max: " .. maxDamage)
+      print("[ZM_EnchantWeaponServer] Change amount: " .. damageChange .. ", Max allowed: " .. maxAllowedChange)
+
       -- Only apply if changes are within acceptable range
-      if math.abs(minDamage - currentMinDamage) <= damageChange and
-         math.abs(maxDamage - currentMaxDamage) <= damageChange then
+      local success = false
+      if (math.abs(minDamage - currentMinDamage) <= maxAllowedChange) and
+         (math.abs(maxDamage - currentMaxDamage) <= maxAllowedChange) then
 
           weapon:setMinDamage(minDamage)
           weapon:setMaxDamage(maxDamage)
@@ -232,17 +243,31 @@ local function onClientCommand(module, command, player, data)
           weapon:getModData().enchantments["maxDamage"] = isPositive
           weapon:getModData().enchanted = true
 
+          -- Store enchantment level
+          if not weapon:getModData().enchantmentStats then
+              weapon:getModData().enchantmentStats = {
+                  enchantCounter = enchantLevel or 0,
+                  originalName = weapon:getName():gsub("_.*_[+-]%d+$", "")
+              }
+          else
+              weapon:getModData().enchantmentStats.enchantCounter = enchantLevel or
+                  weapon:getModData().enchantmentStats.enchantCounter
+          end
+
           print("[ZM_EnchantWeaponServer] Enchantment applied successfully")
+          success = true
       else
           print("[ZM_EnchantWeaponServer] ERROR: Invalid enchantment data from client! Changes too large.")
+          print("[ZM_EnchantWeaponServer] Min diff: " .. math.abs(minDamage - currentMinDamage) ..
+                ", Max diff: " .. math.abs(maxDamage - currentMaxDamage) ..
+                ", Allowed: " .. maxAllowedChange)
       end
-
-      -- Acknowledge the sync
       sendServerCommand(playerObj, "EnchantWeapon", "syncAcknowledged", {
           weaponID = weaponID,
           isPositive = isPositive,
-          minDamage = minDamage,
-          maxDamage = maxDamage
+          minDamage = weapon:getMinDamage(),
+          maxDamage = weapon:getMaxDamage(),
+          success = success
       })
     end
 end

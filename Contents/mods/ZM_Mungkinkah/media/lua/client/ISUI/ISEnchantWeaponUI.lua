@@ -296,6 +296,54 @@ local function ZM_EnchantWeaponServerResponse(module, command, args)
   end
 end
 
+-- Add this function to handle server sync acknowledgements
+local function handleSyncAcknowledgement(module, command, args)
+    if module == "EnchantWeapon" and command == "syncAcknowledged" then
+        local player = getSpecificPlayer(0)
+        if not player then return end
+
+        local inventory = player:getInventory()
+        local weapon = inventory:getItemById(args.weaponID)
+        if not weapon then
+            weapon = player:getPrimaryHandItem()
+            if not weapon or weapon:getID() ~= args.weaponID then return end
+        end
+
+        -- If server reports success, update saved values
+        if args.success then
+            print("[ZM_Mungkinkah] Server accepted enchantment changes")
+            -- Make sure we save the server's values
+            if not weapon:getModData().savedDamageValues then
+                weapon:getModData().savedDamageValues = {}
+            end
+            weapon:getModData().savedDamageValues.minDamage = args.minDamage
+            weapon:getModData().savedDamageValues.maxDamage = args.maxDamage
+            return
+        end
+
+        -- Otherwise, revert to server values
+        print("[ZM_Mungkinkah] Server rejected changes, reverting to server values")
+        weapon:setMinDamage(args.minDamage)
+        weapon:setMaxDamage(args.maxDamage)
+
+        -- Update saved values to match server
+        if not weapon:getModData().savedDamageValues then
+            weapon:getModData().savedDamageValues = {}
+        end
+        weapon:getModData().savedDamageValues.minDamage = args.minDamage
+        weapon:getModData().savedDamageValues.maxDamage = args.maxDamage
+
+        -- If we have UI open, update it
+        if _G.ZM_EnchantingUI and _G.ZM_EnchantingUI:isVisible() then
+            _G.ZM_EnchantingUI.statusText = "Enchantment failed! Server rejected changes."
+            _G.ZM_EnchantingUI.statusColor = {r=1, g=0.3, b=0.3}
+        end
+    end
+end
+
+-- Register this handler for server responses
+Events.OnServerCommand.Add(handleSyncAcknowledgement)
+
 -- IMPORTANT: Make sure we properly remove any existing handler and add our new one
 Events.OnServerCommand.Remove(ZM_EnchantWeaponServerResponse)
 Events.OnServerCommand.Add(ZM_EnchantWeaponServerResponse)
