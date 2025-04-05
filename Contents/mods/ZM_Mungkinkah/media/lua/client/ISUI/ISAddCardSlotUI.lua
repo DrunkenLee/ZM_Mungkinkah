@@ -1,84 +1,121 @@
 require "ISUI/ISPanel"
-require "globalmethods" -- Require the ServerPointx mod's GlobalMethods
+require "ISUI/ISRichTextPanel"
+require "globalmethods"
 
 ISAddCardSlotUI = ISPanel:derive("ISAddCardSlotUI")
 
 function ISAddCardSlotUI:initialise()
     ISPanel.initialise(self)
 
-    -- Create title (centered properly)
-    local titleText = "Weapon Card Slot System"
-    self.titleLabel = ISLabel:new(self.width/2 - getTextManager():MeasureStringX(UIFont.Medium, titleText)/2, 10, 30, titleText, 1, 1, 1, 1, UIFont.Medium, true)
-    self.titleLabel:initialise()
-    self:addChild(self.titleLabel)
+    -- Create header area
+    self.header = ISPanel:new(0, 0, self.width, 40)
+    self.header:initialise()
+    self.header.backgroundColor = {r=0.2, g=0.2, b=0.3, a=1}
+    self:addChild(self.header)
 
-    -- Create weapon info panel (slightly taller)
-    self.weaponPanel = ISPanel:new(20, 40, self.width - 40, 90)
+    -- Title
+    local titleText = "Weapon Card Slot System"
+    self.title = ISLabel:new(self.width/2 - getTextManager():MeasureStringX(UIFont.Medium, titleText)/2,
+                            10, 30, titleText, 1, 1, 1, 1, UIFont.Medium, true)
+    self.title:initialise()
+    self.header:addChild(self.title)
+
+    -- Close button
+    self.closeButton = ISButton:new(self.width - 30, 5, 25, 25, "X", self, ISAddCardSlotUI.close)
+    self.closeButton:initialise()
+    self.closeButton.backgroundColor = {r=0.5, g=0.1, b=0.1, a=0.8}
+    self.closeButton.borderColor = {r=0.7, g=0.3, b=0.3, a=1}
+    self.header:addChild(self.closeButton)
+
+    -- Main container with padding
+    local padding = 20
+    local contentY = self.header:getHeight() + 10
+    local contentWidth = self.width - (padding * 2)
+    local contentHeight = self.height - contentY - padding
+
+    -- Weapon info section
+    self.weaponPanel = ISPanel:new(padding, contentY, contentWidth, 100)
     self.weaponPanel:initialise()
-    self.weaponPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.8}
-    self.weaponPanel.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
+    self.weaponPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
+    self.weaponPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
     self:addChild(self.weaponPanel)
 
-    -- Weapon name (with more space)
-    self.weaponName = ISLabel:new(10, 10, self.weaponPanel.width - 20, "Select a weapon", 1, 1, 1, 1, UIFont.Small)
-    self.weaponName:initialise()
-    self.weaponPanel:addChild(self.weaponName)
+    -- Section title
+    self.weaponPanelTitle = ISLabel:new(10, 5, 200, "WEAPON INFORMATION", 0.8, 0.8, 0.9, 1, UIFont.Small)
+    self.weaponPanelTitle:initialise()
+    self.weaponPanel:addChild(self.weaponPanelTitle)
 
-    -- Weapon slots (positioned lower)
-    self.slotsLabel = ISLabel:new(10, 35, 100, "Slots: 0", 1, 1, 1, 1, UIFont.Small)
+    -- Weapon name (in scrollable text panel to handle long names)
+    self.weaponNameLabel = ISLabel:new(10, 25, 100, "Weapon:", 1, 1, 1, 1, UIFont.Small)
+    self.weaponNameLabel:initialise()
+    self.weaponPanel:addChild(self.weaponNameLabel)
+
+    self.weaponNameText = ISLabel:new(110, 25, contentWidth - 120, "(none equipped)", 1, 0.9, 0.8, 1, UIFont.Small)
+    self.weaponNameText:initialise()
+    self.weaponPanel:addChild(self.weaponNameText)
+
+    -- Weapon stats
+    self.slotsLabel = ISLabel:new(10, 45, 100, "Card Slots:", 1, 1, 1, 1, UIFont.Small)
     self.slotsLabel:initialise()
     self.weaponPanel:addChild(self.slotsLabel)
 
-    -- Current points display (right aligned properly)
-    self.pointsLabel = ISLabel:new(self.weaponPanel.width - 110, 35, 100, "Points: 0", 1, 1, 1, 1, UIFont.Small)
+    self.slotsValue = ISLabel:new(110, 45, 100, "0", 1, 0.8, 0.8, 1, UIFont.Small)
+    self.slotsValue:initialise()
+    self.weaponPanel:addChild(self.slotsValue)
+
+    -- Player points
+    self.pointsLabel = ISLabel:new(10, 65, 100, "Your Points:", 1, 1, 1, 1, UIFont.Small)
     self.pointsLabel:initialise()
     self.weaponPanel:addChild(self.pointsLabel)
 
-    -- Vertical positioning with more spacing
-    local infoY = self.weaponPanel:getY() + self.weaponPanel:getHeight() + 20
+    self.pointsValue = ISLabel:new(110, 65, 100, "0", 0.8, 1, 0.8, 1, UIFont.Small)
+    self.pointsValue:initialise()
+    self.weaponPanel:addChild(self.pointsValue)
 
-    -- Cost and chance info (properly sized and positioned)
-    self.costLabel = ISLabel:new(20, infoY, self.width - 40, "Cost: 1000 points per attempt", 1, 1, 1, 1, UIFont.Small)
-    self.costLabel:initialise()
-    self:addChild(self.costLabel)
+    -- Cost and information section
+    local infoY = self.weaponPanel:getY() + self.weaponPanel:getHeight() + 15
+    self.infoPanel = ISRichTextPanel:new(padding, infoY, contentWidth, 80)
+    self.infoPanel:initialise()
+    self.infoPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
+    self.infoPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
+    self.infoPanel:setMargins(10, 10, 10, 10)
+    self:addChild(self.infoPanel)
 
-    self.chanceLabel = ISLabel:new(20, infoY + 20, self.width - 40, "Success Chance: 1%", 1, 1, 1, 1, UIFont.Small)
-    self.chanceLabel:initialise()
-    self:addChild(self.chanceLabel)
+    -- Set info text
+    self.infoPanel:setText("<CENTRE><SIZE:medium>Card Slot Information</SIZE></CENTRE>\n" ..
+                          "<LINE><RGB:1,0.8,0.6>Cost: <RGB:1,1,1>1000 points per attempt\n" ..
+                          "<RGB:1,0.8,0.6>Success Rate: <RGB:1,1,1>1% chance\n" ..
+                          "<RGB:1,0.8,0.6>Maximum Slots: <RGB:1,1,1>" .. (ZM_CardSystem.MAX_SLOTS or 4))
 
-    -- Status text
+    -- Status section
+    local statusY = self.infoPanel:getY() + self.infoPanel:getHeight() + 15
+    self.statusPanel = ISPanel:new(padding, statusY, contentWidth, 60)
+    self.statusPanel:initialise()
+    self.statusPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
+    self.statusPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
+    self:addChild(self.statusPanel)
+
+    -- Status text (centered)
     self.statusText = "Select a weapon to add a card slot"
     self.statusColor = {r=1, g=1, b=1}
+    self.statusLabel = ISLabel:new(0, 20, contentWidth, self.statusText,
+                                  self.statusColor.r, self.statusColor.g, self.statusColor.b,
+                                  1, UIFont.Medium, true)
+    self.statusLabel:initialise()
+    self.statusLabel:setX(contentWidth/2 - self.statusLabel:getWidth()/2)
+    self.statusPanel:addChild(self.statusLabel)
 
-    -- Add slot button (positioned based on height)
-    local buttonY = infoY + 60
-    self.addSlotButton = ISButton:new(self.width/2 - 75, buttonY, 150, 25, "Add Slot", self, ISAddCardSlotUI.onAddSlot)
+    -- Action button
+    local buttonY = self.statusPanel:getY() + self.statusPanel:getHeight() + 15
+    self.addSlotButton = ISButton:new(padding + 50, buttonY, contentWidth - 100, 40, "ADD CARD SLOT", self, ISAddCardSlotUI.onAddSlot)
     self.addSlotButton:initialise()
-    self.addSlotButton.backgroundColor = {r=0.2, g=0.2, b=0.2, a=0.8}
-    self.addSlotButton.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
+    self.addSlotButton.backgroundColor = {r=0.2, g=0.3, b=0.4, a=0.8}
+    self.addSlotButton.borderColor = {r=0.4, g=0.5, b=0.6, a=1}
     self.addSlotButton.enable = false
+    self.addSlotButton:setFont(UIFont.Medium)
     self:addChild(self.addSlotButton)
 
-    -- Close button
-    self.closeButton = ISButton:new(self.width - 30, 5, 20, 20, "X", self, ISAddCardSlotUI.close)
-    self.closeButton:initialise()
-    self.closeButton.backgroundColor = {r=0.5, g=0.1, b=0.1, a=0.8}
-    self.closeButton.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
-    self:addChild(self.closeButton)
-
     self:refreshUI()
-end
-
-function ISAddCardSlotUI:prerender()
-    ISPanel.prerender(self)
-
-    -- Draw status text with proper positioning
-    local statusY = self.addSlotButton:getY() + self.addSlotButton:getHeight() + 15
-    self:drawText(self.statusText,
-                 self.width/2 - getTextManager():MeasureStringX(UIFont.Medium, self.statusText)/2,
-                 statusY,
-                 self.statusColor.r, self.statusColor.g, self.statusColor.b,
-                 1, UIFont.Medium)
 end
 
 function ISAddCardSlotUI:refreshUI()
@@ -90,47 +127,86 @@ function ISAddCardSlotUI:refreshUI()
     if weapon and weapon:IsWeapon() then
         self.weapon = weapon
 
-        -- Truncate long weapon names
-        local weaponName = weapon:getName()
-        if string.len(weaponName) > 40 then
-            weaponName = string.sub(weaponName, 1, 37) .. "..."
+        -- Set weapon name (no truncation needed with this layout)
+        self.weaponNameText:setName(weapon:getName())
+
+        -- Color weapon name based on rarity/quality
+        local condition = weapon:getCondition() / weapon:getConditionMax()
+        if condition > 0.8 then
+            self.weaponNameText:setColor(0.6, 1, 0.6) -- Green for good condition
+        elseif condition > 0.4 then
+            self.weaponNameText:setColor(1, 1, 0.6) -- Yellow for medium condition
+        else
+            self.weaponNameText:setColor(1, 0.7, 0.7) -- Red for poor condition
         end
-        self.weaponName:setName(weaponName)
 
         -- Show slots
         local slots = ZM_CardSystem.getWeaponSlots(weapon)
-        self.slotsLabel:setName("Slots: " .. slots)
+        self.slotsValue:setName(tostring(slots))
+
+        -- Color slots based on max
+        if slots >= ZM_CardSystem.MAX_SLOTS then
+            self.slotsValue:setColor(1, 0.5, 0.5)
+        elseif slots > 0 then
+            self.slotsValue:setColor(0.5, 1, 0.5)
+        else
+            self.slotsValue:setColor(1, 1, 1)
+        end
 
         -- Show current points
         local points = self:getPlayerPoints()
-        self.pointsLabel:setName("Points: " .. points)
+        self.pointsValue:setName(tostring(points))
+
+        -- Color points based on if enough for slot
+        if points >= 1000 then
+            self.pointsValue:setColor(0.5, 1, 0.5)
+        else
+            self.pointsValue:setColor(1, 0.7, 0.7)
+        end
 
         -- Enable/disable button only based on max slots
         if slots >= ZM_CardSystem.MAX_SLOTS then
             self.addSlotButton.enable = false
-            self.statusText = "This weapon already has maximum slots"
+            self.statusText = "This weapon has reached maximum slots"
             self.statusColor = {r=1, g=0.5, b=0.5}
+            self.addSlotButton.backgroundColor = {r=0.3, g=0.3, b=0.3, a=0.8}
         else
             self.addSlotButton.enable = true
             self.statusText = "Ready to add a slot (1% chance)"
             self.statusColor = {r=1, g=1, b=1}
+            self.addSlotButton.backgroundColor = {r=0.2, g=0.3, b=0.4, a=0.8}
         end
     else
         self.weapon = nil
-        self.weaponName:setName("Equip a weapon")
-        self.slotsLabel:setName("Slots: 0")
+        self.weaponNameText:setName("(none equipped)")
+        self.weaponNameText:setColor(0.7, 0.7, 0.7)
+        self.slotsValue:setName("0")
+        self.slotsValue:setColor(0.7, 0.7, 0.7)
+
+        -- Still show points
+        local points = self:getPlayerPoints()
+        self.pointsValue:setName(tostring(points))
+        if points >= 1000 then
+            self.pointsValue:setColor(0.5, 1, 0.5)
+        else
+            self.pointsValue:setColor(1, 0.7, 0.7)
+        end
+
         self.addSlotButton.enable = false
-        self.statusText = "Select a weapon to add a card slot"
-        self.statusColor = {r=1, g=1, b=1}
+        self.statusText = "Equip a weapon first"
+        self.statusColor = {r=1, g=0.8, b=0.5}
+        self.addSlotButton.backgroundColor = {r=0.3, g=0.3, b=0.3, a=0.8}
     end
+
+    -- Update status text
+    self.statusLabel:setName(self.statusText)
+    self.statusLabel:setColor(self.statusColor.r, self.statusColor.g, self.statusColor.b)
+    self.statusLabel:setX(self.statusPanel:getWidth()/2 - self.statusLabel:getWidth()/2)
 end
 
 function ISAddCardSlotUI:getPlayerPoints()
-    -- Use the GlobalMethods to get player points
     local player = getSpecificPlayer(0)
     if not player then return 0 end
-
-    -- Get points from GlobalMethods
     return GlobalMethods.getPlayerPoints(player:getUsername()) or 0
 end
 
@@ -140,11 +216,14 @@ function ISAddCardSlotUI:onAddSlot()
     local player = getSpecificPlayer(0)
     if not player then return end
 
-    -- Check if player has enough points ONLY when they try to add a slot
+    -- Check if player has enough points
     local points = self:getPlayerPoints()
     if points < 1000 then
         self.statusText = "Not enough points (1000 required)"
         self.statusColor = {r=1, g=0.5, b=0.5}
+        self.statusLabel:setName(self.statusText)
+        self.statusLabel:setColor(self.statusColor.r, self.statusColor.g, self.statusColor.b)
+        self.statusLabel:setX(self.statusPanel:getWidth()/2 - self.statusLabel:getWidth()/2)
         return
     end
 
@@ -158,40 +237,44 @@ function ISAddCardSlotUI:onAddSlot()
 
     -- Show processing status
     self.statusText = "Processing request..."
-    self.statusColor = {r=0.8, g=0.8, b=0.8}
+    self.statusColor = {r=0.8, g=0.8, b=1}
+    self.statusLabel:setName(self.statusText)
+    self.statusLabel:setColor(self.statusColor.r, self.statusColor.g, self.statusColor.b)
+    self.statusLabel:setX(self.statusPanel:getWidth()/2 - self.statusLabel:getWidth()/2)
+
     self.addSlotButton.enable = false
+    self.addSlotButton.backgroundColor = {r=0.3, g=0.3, b=0.3, a=0.8}
 
     -- Play sound effect
     getSoundManager():PlayWorldSound("rganvil", player:getSquare(), 0, 10, 1, false)
 end
 
 function ISAddCardSlotUI:onSlotResult(success)
-  -- Get player properly
-  local player = getSpecificPlayer(0)
+    local player = getSpecificPlayer(0)
 
-  if success then
-      self.statusText = "Success! Added a card slot"
-      self.statusColor = {r=0.2, g=1, b=0.2}
+    if success then
+        self.statusText = "Success! Added a card slot"
+        self.statusColor = {r=0.2, g=1, b=0.2}
 
-      -- Play success sound
-      if player then
-          getSoundManager():PlayWorldSound("lightswitch", player:getSquare(), 0, 10, 1, false)
-      end
-  else
-      self.statusText = "Failed to add a card slot (try again?)"
-      self.statusColor = {r=1, g=0.5, b=0.5}
+        if player then
+            getSoundManager():PlayWorldSound("lightswitch", player:getSquare(), 0, 10, 1, false)
+        end
+    else
+        self.statusText = "Failed to add a card slot"
+        self.statusColor = {r=1, g=0.5, b=0.5}
 
-      -- Play failure sound
-      if player then
-          getSoundManager():PlayWorldSound("PZ_Cloth_Rip", player:getSquare(), 0, 10, 1, false)
-      end
-  end
+        if player then
+            getSoundManager():PlayWorldSound("PZ_Cloth_Rip", player:getSquare(), 0, 10, 1, false)
+        end
+    end
 
-  -- Re-enable the button
-  self.addSlotButton.enable = true
+    -- Update status display
+    self.statusLabel:setName(self.statusText)
+    self.statusLabel:setColor(self.statusColor.r, self.statusColor.g, self.statusColor.b)
+    self.statusLabel:setX(self.statusPanel:getWidth()/2 - self.statusLabel:getWidth()/2)
 
-  -- Refresh the UI
-  self:refreshUI()
+    -- Refresh UI (re-enables button if appropriate)
+    self:refreshUI()
 end
 
 function ISAddCardSlotUI:close()
@@ -204,9 +287,9 @@ function ISAddCardSlotUI:new(x, y, width, height)
     local o = ISPanel:new(x, y, width, height)
     setmetatable(o, self)
     self.__index = self
-    o.variableColor={r=0.9, g=0.9, b=0.9, a=1}
+    o.variableColor = {r=0.9, g=0.9, b=0.9, a=1}
     o.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
-    o.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.9}
+    o.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.95}
     o.width = width
     o.height = height
     o.moveWithMouse = true
@@ -216,7 +299,7 @@ function ISAddCardSlotUI:new(x, y, width, height)
     return o
 end
 
--- Handle server response
+-- Server response handler
 local function onServerCommand(module, command, args)
     print("[ZM_CardSystem Client] Received server command: " .. module .. "/" .. command)
 
@@ -233,23 +316,23 @@ local function onServerCommand(module, command, args)
     end
 end
 
--- Make sure we're properly registering the handler
+-- Register command handler
 Events.OnServerCommand.Remove(onServerCommand)
 Events.OnServerCommand.Add(onServerCommand)
 print("[ZM_CardSystem Client] Registered server command handler")
 
--- Function to show UI with increased height
+-- Show UI function
 function showAddCardSlotUI()
     if _G.CardSlotUI and _G.CardSlotUI:isVisible() then
         return _G.CardSlotUI
     end
 
-    -- 450px wide and increased height to 280px
+    -- Create a larger UI with better proportions (500x400)
     local ui = ISAddCardSlotUI:new(
-        (getCore():getScreenWidth() / 2) - 225,
-        (getCore():getScreenHeight() / 2) - 140,
-        450,
-        280
+        (getCore():getScreenWidth() / 2) - 250,
+        (getCore():getScreenHeight() / 2) - 200,
+        500,
+        400
     )
 
     ui:initialise()
@@ -262,4 +345,3 @@ end
 -- Register command
 if not _G.ZM_Commands then _G.ZM_Commands = {} end
 _G.ZM_Commands.ShowAddCardSlotUI = showAddCardSlotUI
-

@@ -1,4 +1,3 @@
--- Define our card system module (moved to shared folder)
 ZM_CardSystem = ZM_CardSystem or {}
 
 -- Get number of slots for a weapon
@@ -49,3 +48,5 @@ end
 
 -- Maximum slots allowed per weapon
 ZM_CardSystem.MAX_SLOTS = 4
+
+print("[ZM_CardSystem] Shared card system functions loaded")
