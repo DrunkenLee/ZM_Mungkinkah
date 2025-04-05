@@ -58,9 +58,9 @@ local function onClientCommand(module, command, player, data)
             return
         end
 
-        -- Roll for success (1% chance)
+        -- Roll for success (5% chance)
         local roll = ZombRand(100)
-        local success = (roll == 0) -- 1% chance (0 out of 0-99)
+        local success = (roll < 50) -- 5% chance (0-4 out of 0-99)
 
         print("[ZM_CardSystem Server] Roll: " .. roll .. " (success: " .. tostring(success) .. ")")
 
