@@ -30,6 +30,7 @@ function ZM_CardSystem.addSlot(weapon)
     return true
 end
 
+-- Update weapon name to show card slots
 function ZM_CardSystem.updateWeaponName(weapon)
     if not weapon then return end
 
@@ -47,4 +48,4 @@ function ZM_CardSystem.updateWeaponName(weapon)
 end
 
 -- Maximum slots allowed per weapon
-ZM_CardSystem.MAX_SLOTS = 3
+ZM_CardSystem.MAX_SLOTS = 4

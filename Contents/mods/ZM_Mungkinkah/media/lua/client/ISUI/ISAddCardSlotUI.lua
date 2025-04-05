@@ -1,4 +1,5 @@
 require "ISUI/ISPanel"
+require "globalmethods" -- Require the ServerPointx mod's GlobalMethods
 
 ISAddCardSlotUI = ISPanel:derive("ISAddCardSlotUI")
 
@@ -6,7 +7,7 @@ function ISAddCardSlotUI:initialise()
     ISPanel.initialise(self)
 
     -- Create title
-    self.titleLabel = ISLabel:new(self.width/2 - 100, 10, 30, "Weapon Card Slot System", 1, 1, 1, 1, UIFont.Medium, true)
+    self.titleLabel = ISLabel:new(self.width/2 - 150, 10, 30, "Weapon Card Slot System", 1, 1, 1, 1, UIFont.Medium, true)
     self.titleLabel:initialise()
     self:addChild(self.titleLabel)
 
@@ -27,12 +28,17 @@ function ISAddCardSlotUI:initialise()
     self.slotsLabel:initialise()
     self.weaponPanel:addChild(self.slotsLabel)
 
+    -- Current points display
+    self.pointsLabel = ISLabel:new(self.width - 150, 30, 30, "Points: 0", 1, 1, 1, 1, UIFont.Small)
+    self.pointsLabel:initialise()
+    self.weaponPanel:addChild(self.pointsLabel)
+
     -- Cost and chance info
-    self.costLabel = ISLabel:new(self.width/2 - 100, 130, 30, "Cost: 1000 points per attempt", 1, 1, 1, 1, UIFont.Small)
+    self.costLabel = ISLabel:new(self.width/2 - 150, 130, 30, "Cost: 1000 points per attempt", 1, 1, 1, 1, UIFont.Small)
     self.costLabel:initialise()
     self:addChild(self.costLabel)
 
-    self.chanceLabel = ISLabel:new(self.width/2 - 100, 150, 30, "Success Chance: 1%", 1, 1, 1, 1, UIFont.Small)
+    self.chanceLabel = ISLabel:new(self.width/2 - 150, 150, 30, "Success Chance: 1%", 1, 1, 1, 1, UIFont.Small)
     self.chanceLabel:initialise()
     self:addChild(self.chanceLabel)
 
@@ -41,7 +47,7 @@ function ISAddCardSlotUI:initialise()
     self.statusColor = {r=1, g=1, b=1}
 
     -- Add slot button
-    self.addSlotButton = ISButton:new(self.width/2 - 50, 180, 100, 25, "Add Slot", self, ISAddCardSlotUI.onAddSlot)
+    self.addSlotButton = ISButton:new(self.width/2 - 75, 180, 150, 25, "Add Slot", self, ISAddCardSlotUI.onAddSlot)
     self.addSlotButton:initialise()
     self.addSlotButton.backgroundColor = {r=0.2, g=0.2, b=0.2, a=0.8}
     self.addSlotButton.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
@@ -83,6 +89,10 @@ function ISAddCardSlotUI:refreshUI()
         local slots = ZM_CardSystem.getWeaponSlots(weapon)
         self.slotsLabel:setName("Slots: " .. slots)
 
+        -- Show current points
+        local points = self:getPlayerPoints()
+        self.pointsLabel:setName("Points: " .. points)
+
         -- Enable/disable button based on max slots
         if slots >= ZM_CardSystem.MAX_SLOTS then
             self.addSlotButton.enable = false
@@ -90,7 +100,7 @@ function ISAddCardSlotUI:refreshUI()
             self.statusColor = {r=1, g=0.5, b=0.5}
         else
             -- Check if player has enough points
-            if self:getPlayerPoints() >= 1000 then
+            if points >= 1000 then
                 self.addSlotButton.enable = true
                 self.statusText = "Ready to add a slot (1% chance)"
                 self.statusColor = {r=1, g=1, b=1}
@@ -111,21 +121,19 @@ function ISAddCardSlotUI:refreshUI()
 end
 
 function ISAddCardSlotUI:getPlayerPoints()
-    -- Reuse the same point system from your enchantment system
+    -- Use the GlobalMethods to get player points
     local player = getSpecificPlayer(0)
     if not player then return 0 end
 
-    -- Assuming your points are stored in modData
-    local modData = player:getModData()
-    if not modData.enchantmentPoints then
-        modData.enchantmentPoints = 0
-    end
-
-    return modData.enchantmentPoints
+    -- Use the GlobalMethods.getPlayerPoints function
+    return GlobalMethods.getPlayerPoints(player:getUsername()) or 0
 end
 
 function ISAddCardSlotUI:onAddSlot()
     if not self.weapon then return end
+
+    local player = getSpecificPlayer(0)
+    if not player then return end
 
     -- Check if player has enough points
     local points = self:getPlayerPoints()
@@ -135,10 +143,8 @@ function ISAddCardSlotUI:onAddSlot()
         return
     end
 
-    -- Deduct points first
-    local player = getSpecificPlayer(0)
-    local modData = player:getModData()
-    modData.enchantmentPoints = modData.enchantmentPoints - 1000
+    -- Deduct points using GlobalMethods
+    GlobalMethods.takePlayerPoints(player:getUsername(), 1000)
 
     -- Send request to server
     sendClientCommand(player, "CardSystem", "addSlot", {
@@ -208,16 +214,17 @@ local function onServerCommand(module, command, args)
     end
 end
 
--- Function to show UI
+-- Function to show UI with 50% wider size
 function showAddCardSlotUI()
     if _G.CardSlotUI and _G.CardSlotUI:isVisible() then
         return _G.CardSlotUI
     end
 
+    -- Original was 300, now 50% wider = 450
     local ui = ISAddCardSlotUI:new(
-        (getCore():getScreenWidth() / 2) - 150,
+        (getCore():getScreenWidth() / 2) - 225,
         (getCore():getScreenHeight() / 2) - 125,
-        300,
+        450,
         250
     )
 
