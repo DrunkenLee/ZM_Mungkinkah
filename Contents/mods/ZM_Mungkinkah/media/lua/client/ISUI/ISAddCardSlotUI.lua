@@ -6,39 +6,43 @@ ISAddCardSlotUI = ISPanel:derive("ISAddCardSlotUI")
 function ISAddCardSlotUI:initialise()
     ISPanel.initialise(self)
 
-    -- Create title
-    self.titleLabel = ISLabel:new(self.width/2 - 150, 10, 30, "Weapon Card Slot System", 1, 1, 1, 1, UIFont.Medium, true)
+    -- Create title (centered properly)
+    local titleText = "Weapon Card Slot System"
+    self.titleLabel = ISLabel:new(self.width/2 - getTextManager():MeasureStringX(UIFont.Medium, titleText)/2, 10, 30, titleText, 1, 1, 1, 1, UIFont.Medium, true)
     self.titleLabel:initialise()
     self:addChild(self.titleLabel)
 
-    -- Create weapon info panel
-    self.weaponPanel = ISPanel:new(20, 40, self.width - 40, 80)
+    -- Create weapon info panel (slightly taller)
+    self.weaponPanel = ISPanel:new(20, 40, self.width - 40, 90)
     self.weaponPanel:initialise()
     self.weaponPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.8}
     self.weaponPanel.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
     self:addChild(self.weaponPanel)
 
-    -- Weapon name
-    self.weaponName = ISLabel:new(10, 10, 30, "Select a weapon", 1, 1, 1, 1, UIFont.Small)
+    -- Weapon name (with more space)
+    self.weaponName = ISLabel:new(10, 10, self.weaponPanel.width - 20, "Select a weapon", 1, 1, 1, 1, UIFont.Small)
     self.weaponName:initialise()
     self.weaponPanel:addChild(self.weaponName)
 
-    -- Weapon slots
-    self.slotsLabel = ISLabel:new(10, 30, 30, "Slots: 0", 1, 1, 1, 1, UIFont.Small)
+    -- Weapon slots (positioned lower)
+    self.slotsLabel = ISLabel:new(10, 35, 100, "Slots: 0", 1, 1, 1, 1, UIFont.Small)
     self.slotsLabel:initialise()
     self.weaponPanel:addChild(self.slotsLabel)
 
-    -- Current points display
-    self.pointsLabel = ISLabel:new(self.width - 150, 30, 30, "Points: 0", 1, 1, 1, 1, UIFont.Small)
+    -- Current points display (right aligned properly)
+    self.pointsLabel = ISLabel:new(self.weaponPanel.width - 110, 35, 100, "Points: 0", 1, 1, 1, 1, UIFont.Small)
     self.pointsLabel:initialise()
     self.weaponPanel:addChild(self.pointsLabel)
 
-    -- Cost and chance info
-    self.costLabel = ISLabel:new(self.width/2 - 150, 130, 30, "Cost: 1000 points per attempt", 1, 1, 1, 1, UIFont.Small)
+    -- Vertical positioning with more spacing
+    local infoY = self.weaponPanel:getY() + self.weaponPanel:getHeight() + 20
+
+    -- Cost and chance info (properly sized and positioned)
+    self.costLabel = ISLabel:new(20, infoY, self.width - 40, "Cost: 1000 points per attempt", 1, 1, 1, 1, UIFont.Small)
     self.costLabel:initialise()
     self:addChild(self.costLabel)
 
-    self.chanceLabel = ISLabel:new(self.width/2 - 150, 150, 30, "Success Chance: 1%", 1, 1, 1, 1, UIFont.Small)
+    self.chanceLabel = ISLabel:new(20, infoY + 20, self.width - 40, "Success Chance: 1%", 1, 1, 1, 1, UIFont.Small)
     self.chanceLabel:initialise()
     self:addChild(self.chanceLabel)
 
@@ -46,8 +50,9 @@ function ISAddCardSlotUI:initialise()
     self.statusText = "Select a weapon to add a card slot"
     self.statusColor = {r=1, g=1, b=1}
 
-    -- Add slot button
-    self.addSlotButton = ISButton:new(self.width/2 - 75, 180, 150, 25, "Add Slot", self, ISAddCardSlotUI.onAddSlot)
+    -- Add slot button (positioned based on height)
+    local buttonY = infoY + 60
+    self.addSlotButton = ISButton:new(self.width/2 - 75, buttonY, 150, 25, "Add Slot", self, ISAddCardSlotUI.onAddSlot)
     self.addSlotButton:initialise()
     self.addSlotButton.backgroundColor = {r=0.2, g=0.2, b=0.2, a=0.8}
     self.addSlotButton.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
@@ -67,10 +72,11 @@ end
 function ISAddCardSlotUI:prerender()
     ISPanel.prerender(self)
 
-    -- Draw status text
+    -- Draw status text with proper positioning
+    local statusY = self.addSlotButton:getY() + self.addSlotButton:getHeight() + 15
     self:drawText(self.statusText,
                  self.width/2 - getTextManager():MeasureStringX(UIFont.Medium, self.statusText)/2,
-                 210,
+                 statusY,
                  self.statusColor.r, self.statusColor.g, self.statusColor.b,
                  1, UIFont.Medium)
 end
@@ -83,7 +89,13 @@ function ISAddCardSlotUI:refreshUI()
     local weapon = player:getPrimaryHandItem()
     if weapon and weapon:IsWeapon() then
         self.weapon = weapon
-        self.weaponName:setName(weapon:getName())
+
+        -- Truncate long weapon names
+        local weaponName = weapon:getName()
+        if string.len(weaponName) > 40 then
+            weaponName = string.sub(weaponName, 1, 37) .. "..."
+        end
+        self.weaponName:setName(weaponName)
 
         -- Show slots
         local slots = ZM_CardSystem.getWeaponSlots(weapon)
@@ -93,22 +105,15 @@ function ISAddCardSlotUI:refreshUI()
         local points = self:getPlayerPoints()
         self.pointsLabel:setName("Points: " .. points)
 
-        -- Enable/disable button based on max slots
+        -- Enable/disable button only based on max slots
         if slots >= ZM_CardSystem.MAX_SLOTS then
             self.addSlotButton.enable = false
             self.statusText = "This weapon already has maximum slots"
             self.statusColor = {r=1, g=0.5, b=0.5}
         else
-            -- Check if player has enough points
-            if points >= 1000 then
-                self.addSlotButton.enable = true
-                self.statusText = "Ready to add a slot (1% chance)"
-                self.statusColor = {r=1, g=1, b=1}
-            else
-                self.addSlotButton.enable = false
-                self.statusText = "Not enough points (1000 required)"
-                self.statusColor = {r=1, g=0.5, b=0.5}
-            end
+            self.addSlotButton.enable = true
+            self.statusText = "Ready to add a slot (1% chance)"
+            self.statusColor = {r=1, g=1, b=1}
         end
     else
         self.weapon = nil
@@ -125,7 +130,7 @@ function ISAddCardSlotUI:getPlayerPoints()
     local player = getSpecificPlayer(0)
     if not player then return 0 end
 
-    -- Use the GlobalMethods.getPlayerPoints function
+    -- Get points from GlobalMethods
     return GlobalMethods.getPlayerPoints(player:getUsername()) or 0
 end
 
@@ -135,7 +140,7 @@ function ISAddCardSlotUI:onAddSlot()
     local player = getSpecificPlayer(0)
     if not player then return end
 
-    -- Check if player has enough points
+    -- Check if player has enough points ONLY when they try to add a slot
     local points = self:getPlayerPoints()
     if points < 1000 then
         self.statusText = "Not enough points (1000 required)"
@@ -161,24 +166,32 @@ function ISAddCardSlotUI:onAddSlot()
 end
 
 function ISAddCardSlotUI:onSlotResult(success)
-    if success then
-        self.statusText = "Success! Added a card slot"
-        self.statusColor = {r=0.2, g=1, b=0.2}
+  -- Get player properly
+  local player = getSpecificPlayer(0)
 
-        -- Play success sound
-        local player = getSpecificPlayer(0)
-        getSoundManager():PlayWorldSound("lightswitch", player:getSquare(), 0, 10, 1, false)
-    else
-        self.statusText = "Failed to add a card slot (try again?)"
-        self.statusColor = {r=1, g=0.5, b=0.5}
+  if success then
+      self.statusText = "Success! Added a card slot"
+      self.statusColor = {r=0.2, g=1, b=0.2}
 
-        -- Play failure sound
-        local player = getSpecificPlayer(0)
-        getSoundManager():PlayWorldSound("PZ_Cloth_Rip", player:getSquare(), 0, 10, 1, false)
-    end
+      -- Play success sound
+      if player then
+          getSoundManager():PlayWorldSound("lightswitch", player:getSquare(), 0, 10, 1, false)
+      end
+  else
+      self.statusText = "Failed to add a card slot (try again?)"
+      self.statusColor = {r=1, g=0.5, b=0.5}
 
-    -- Refresh the UI
-    self:refreshUI()
+      -- Play failure sound
+      if player then
+          getSoundManager():PlayWorldSound("PZ_Cloth_Rip", player:getSquare(), 0, 10, 1, false)
+      end
+  end
+
+  -- Re-enable the button
+  self.addSlotButton.enable = true
+
+  -- Refresh the UI
+  self:refreshUI()
 end
 
 function ISAddCardSlotUI:close()
@@ -205,27 +218,38 @@ end
 
 -- Handle server response
 local function onServerCommand(module, command, args)
+    print("[ZM_CardSystem Client] Received server command: " .. module .. "/" .. command)
+
     if module ~= "CardSystem" then return end
 
     if command == "slotResult" then
+        print("[ZM_CardSystem Client] Got slot result: " .. tostring(args.success))
+
         if _G.CardSlotUI and _G.CardSlotUI:isVisible() then
             _G.CardSlotUI:onSlotResult(args.success)
+        else
+            print("[ZM_CardSystem Client] WARNING: UI not visible to receive result")
         end
     end
 end
 
--- Function to show UI with 50% wider size
+-- Make sure we're properly registering the handler
+Events.OnServerCommand.Remove(onServerCommand)
+Events.OnServerCommand.Add(onServerCommand)
+print("[ZM_CardSystem Client] Registered server command handler")
+
+-- Function to show UI with increased height
 function showAddCardSlotUI()
     if _G.CardSlotUI and _G.CardSlotUI:isVisible() then
         return _G.CardSlotUI
     end
 
-    -- Original was 300, now 50% wider = 450
+    -- 450px wide and increased height to 280px
     local ui = ISAddCardSlotUI:new(
         (getCore():getScreenWidth() / 2) - 225,
-        (getCore():getScreenHeight() / 2) - 125,
+        (getCore():getScreenHeight() / 2) - 140,
         450,
-        250
+        280
     )
 
     ui:initialise()
@@ -239,5 +263,3 @@ end
 if not _G.ZM_Commands then _G.ZM_Commands = {} end
 _G.ZM_Commands.ShowAddCardSlotUI = showAddCardSlotUI
 
--- Register server command handler
-Events.OnServerCommand.Add(onServerCommand)

@@ -5,16 +5,28 @@ local function onClientCommand(module, command, player, data)
     if module ~= "CardSystem" then return end
 
     if command == "addSlot" then
-        print("[ZM_CardSystem] Processing add slot request")
+        print("[ZM_CardSystem Server] Processing add slot request")
+
+        -- Validate we have the required functions
+        if not ZM_CardSystem or not ZM_CardSystem.getWeaponSlots or not ZM_CardSystem.addSlot then
+            print("[ZM_CardSystem Server] ERROR: ZM_CardSystem functions not found!")
+            -- Try to send response anyway
+            if player and player:isConnected() then
+                sendServerCommand(player, "CardSystem", "slotResult", {
+                    success = false,
+                    reason = "serverError"
+                })
+            end
+            return
+        end
 
         local weaponID = data.weaponID
-
-        print("[ZM_CardSystem] Weapon ID: " .. tostring(weaponID))
+        print("[ZM_CardSystem Server] Weapon ID: " .. tostring(weaponID))
 
         -- Get player object
         local playerObj = getPlayerByOnlineID(player:getOnlineID())
         if not playerObj then
-            print("[ZM_CardSystem] ERROR: Player not found!")
+            print("[ZM_CardSystem Server] ERROR: Player not found!")
             return
         end
 
@@ -26,7 +38,11 @@ local function onClientCommand(module, command, player, data)
             if primaryItem and primaryItem:getID() == weaponID then
                 weapon = primaryItem
             else
-                print("[ZM_CardSystem] ERROR: Weapon not found!")
+                print("[ZM_CardSystem Server] ERROR: Weapon not found!")
+                sendServerCommand(playerObj, "CardSystem", "slotResult", {
+                    success = false,
+                    reason = "weaponNotFound"
+                })
                 return
             end
         end
@@ -34,7 +50,7 @@ local function onClientCommand(module, command, player, data)
         -- Check current slots
         local slots = ZM_CardSystem.getWeaponSlots(weapon)
         if slots >= ZM_CardSystem.MAX_SLOTS then
-            print("[ZM_CardSystem] ERROR: Weapon already has maximum slots!")
+            print("[ZM_CardSystem Server] ERROR: Weapon already has maximum slots!")
             sendServerCommand(playerObj, "CardSystem", "slotResult", {
                 success = false,
                 reason = "maxSlots"
@@ -46,21 +62,29 @@ local function onClientCommand(module, command, player, data)
         local roll = ZombRand(100)
         local success = (roll == 0) -- 1% chance (0 out of 0-99)
 
-        print("[ZM_CardSystem] Roll: " .. roll .. " (success: " .. tostring(success) .. ")")
+        print("[ZM_CardSystem Server] Roll: " .. roll .. " (success: " .. tostring(success) .. ")")
 
         -- If successful, add the slot
         if success then
             ZM_CardSystem.addSlot(weapon)
-            print("[ZM_CardSystem] Successfully added a slot")
+            print("[ZM_CardSystem Server] Successfully added a slot")
         else
-            print("[ZM_CardSystem] Failed to add a slot")
+            print("[ZM_CardSystem Server] Failed to add a slot")
         end
 
-        -- Send result to client
-        sendServerCommand(playerObj, "CardSystem", "slotResult", {
-            success = success,
-            slots = ZM_CardSystem.getWeaponSlots(weapon)
-        })
+        -- Send result to client - use pcall to catch any errors
+        local status, err = pcall(function()
+            sendServerCommand(playerObj, "CardSystem", "slotResult", {
+                success = success,
+                slots = ZM_CardSystem.getWeaponSlots(weapon)
+            })
+        end)
+
+        if not status then
+            print("[ZM_CardSystem Server] ERROR sending result: " .. tostring(err))
+        else
+            print("[ZM_CardSystem Server] Result sent successfully")
+        end
 
         -- Play sound effect
         sendServerCommand(playerObj, "ZM_Mungkinkah", "PlayWorldSound", {
@@ -75,5 +99,6 @@ local function onClientCommand(module, command, player, data)
 end
 
 -- Register command handler
+Events.OnClientCommand.Remove(onClientCommand)
 Events.OnClientCommand.Add(onClientCommand)
-print("[ZM_CardSystem] Registered server command handler")
+print("[ZM_CardSystem Server] Registered client command handler")

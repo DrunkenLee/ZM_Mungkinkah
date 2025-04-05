@@ -1,4 +1,4 @@
--- Define our card system module
+-- Define our card system module (moved to shared folder)
 ZM_CardSystem = ZM_CardSystem or {}
 
 -- Get number of slots for a weapon
