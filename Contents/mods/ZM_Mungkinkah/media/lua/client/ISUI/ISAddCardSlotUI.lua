@@ -5,117 +5,117 @@ require "globalmethods"
 ISAddCardSlotUI = ISPanel:derive("ISAddCardSlotUI")
 
 function ISAddCardSlotUI:initialise()
-    ISPanel.initialise(self)
+  ISPanel.initialise(self)
 
-    -- Create header area
-    self.header = ISPanel:new(0, 0, self.width, 40)
-    self.header:initialise()
-    self.header.backgroundColor = {r=0.2, g=0.2, b=0.3, a=1}
-    self:addChild(self.header)
+  -- Create header area
+  self.header = ISPanel:new(0, 0, self.width, 40)
+  self.header:initialise()
+  self.header.backgroundColor = {r=0.2, g=0.2, b=0.3, a=1}
+  self:addChild(self.header)
 
-    -- Title
-    local titleText = "Weapon Card Slot System"
-    self.title = ISLabel:new(self.width/2 - getTextManager():MeasureStringX(UIFont.Medium, titleText)/2,
-                            10, 30, titleText, 1, 1, 1, 1, UIFont.Medium, true)
-    self.title:initialise()
-    self.header:addChild(self.title)
+  -- Title
+  local titleText = "Weapon Card Slot System"
+  self.title = ISLabel:new(self.width / 2 - getTextManager():MeasureStringX(UIFont.Medium, titleText) / 2,
+                           10, 30, titleText, 1, 1, 1, 1, UIFont.Medium, true)
+  self.title:initialise()
+  self.header:addChild(self.title)
 
-    -- Close button
-    self.closeButton = ISButton:new(self.width - 30, 5, 25, 25, "X", self, ISAddCardSlotUI.close)
-    self.closeButton:initialise()
-    self.closeButton.backgroundColor = {r=0.5, g=0.1, b=0.1, a=0.8}
-    self.closeButton.borderColor = {r=0.7, g=0.3, b=0.3, a=1}
-    self.header:addChild(self.closeButton)
+  -- Close button
+  self.closeButton = ISButton:new(self.width - 35, 7, 25, 25, "X", self, ISAddCardSlotUI.close)
+  self.closeButton:initialise()
+  self.closeButton.backgroundColor = {r=0.5, g=0.1, b=0.1, a=0.8}
+  self.closeButton.borderColor = {r=0.7, g=0.3, b=0.3, a=1}
+  self.header:addChild(self.closeButton)
 
-    -- Main container with padding
-    local padding = 20
-    local contentY = self.header:getHeight() + 10
-    local contentWidth = self.width - (padding * 2)
-    local contentHeight = self.height - contentY - padding
+  -- Main container with padding
+  local padding = 20
+  local contentY = self.header:getHeight() + 10
+  local contentWidth = self.width - (padding * 2)
+  local contentHeight = self.height - contentY - padding
 
-    -- Weapon info section
-    self.weaponPanel = ISPanel:new(padding, contentY, contentWidth, 100)
-    self.weaponPanel:initialise()
-    self.weaponPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
-    self.weaponPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
-    self:addChild(self.weaponPanel)
+  -- Weapon info section
+  self.weaponPanel = ISPanel:new(padding, contentY, contentWidth, 120)
+  self.weaponPanel:initialise()
+  self.weaponPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
+  self.weaponPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
+  self:addChild(self.weaponPanel)
 
-    -- Section title
-    self.weaponPanelTitle = ISLabel:new(10, 5, 200, "WEAPON INFORMATION", 0.8, 0.8, 0.9, 1, UIFont.Small)
-    self.weaponPanelTitle:initialise()
-    self.weaponPanel:addChild(self.weaponPanelTitle)
+  -- Section title
+  self.weaponPanelTitle = ISLabel:new(10, 5, contentWidth - 20, "WEAPON INFORMATION", 0.8, 0.8, 0.9, 1, UIFont.Small)
+  self.weaponPanelTitle:initialise()
+  self.weaponPanel:addChild(self.weaponPanelTitle)
 
-    -- Weapon name (in scrollable text panel to handle long names)
-    self.weaponNameLabel = ISLabel:new(10, 25, 100, "Weapon:", 1, 1, 1, 1, UIFont.Small)
-    self.weaponNameLabel:initialise()
-    self.weaponPanel:addChild(self.weaponNameLabel)
+  -- Weapon name
+  self.weaponNameLabel = ISLabel:new(10, 25, 100, "Weapon:", 1, 1, 1, 1, UIFont.Small)
+  self.weaponNameLabel:initialise()
+  self.weaponPanel:addChild(self.weaponNameLabel)
 
-    self.weaponNameText = ISLabel:new(110, 25, contentWidth - 120, "(none equipped)", 1, 0.9, 0.8, 1, UIFont.Small)
-    self.weaponNameText:initialise()
-    self.weaponPanel:addChild(self.weaponNameText)
+  self.weaponNameText = ISLabel:new(110, 25, contentWidth - 120, "(none equipped)", 1, 0.9, 0.8, 1, UIFont.Small)
+  self.weaponNameText:initialise()
+  self.weaponPanel:addChild(self.weaponNameText)
 
-    -- Weapon stats
-    self.slotsLabel = ISLabel:new(10, 45, 100, "Card Slots:", 1, 1, 1, 1, UIFont.Small)
-    self.slotsLabel:initialise()
-    self.weaponPanel:addChild(self.slotsLabel)
+  -- Weapon stats
+  self.slotsLabel = ISLabel:new(10, 50, 100, "Card Slots:", 1, 1, 1, 1, UIFont.Small)
+  self.slotsLabel:initialise()
+  self.weaponPanel:addChild(self.slotsLabel)
 
-    self.slotsValue = ISLabel:new(110, 45, 100, "0", 1, 0.8, 0.8, 1, UIFont.Small)
-    self.slotsValue:initialise()
-    self.weaponPanel:addChild(self.slotsValue)
+  self.slotsValue = ISLabel:new(110, 50, 100, "0", 1, 0.8, 0.8, 1, UIFont.Small)
+  self.slotsValue:initialise()
+  self.weaponPanel:addChild(self.slotsValue)
 
-    -- Player points
-    self.pointsLabel = ISLabel:new(10, 65, 100, "Your Points:", 1, 1, 1, 1, UIFont.Small)
-    self.pointsLabel:initialise()
-    self.weaponPanel:addChild(self.pointsLabel)
+  -- Player points
+  self.pointsLabel = ISLabel:new(10, 75, 100, "Your Points:", 1, 1, 1, 1, UIFont.Small)
+  self.pointsLabel:initialise()
+  self.weaponPanel:addChild(self.pointsLabel)
 
-    self.pointsValue = ISLabel:new(110, 65, 100, "0", 0.8, 1, 0.8, 1, UIFont.Small)
-    self.pointsValue:initialise()
-    self.weaponPanel:addChild(self.pointsValue)
+  self.pointsValue = ISLabel:new(110, 75, 100, "0", 0.8, 1, 0.8, 1, UIFont.Small)
+  self.pointsValue:initialise()
+  self.weaponPanel:addChild(self.pointsValue)
 
-    -- Cost and information section
-    local infoY = self.weaponPanel:getY() + self.weaponPanel:getHeight() + 15
-    self.infoPanel = ISRichTextPanel:new(padding, infoY, contentWidth, 80)
-    self.infoPanel:initialise()
-    self.infoPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
-    self.infoPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
-    self.infoPanel:setMargins(10, 10, 10, 10)
-    self:addChild(self.infoPanel)
+  -- Cost and information section
+  local infoY = self.weaponPanel:getY() + self.weaponPanel:getHeight() + 15
+  self.infoPanel = ISRichTextPanel:new(padding, infoY, contentWidth, 100)
+  self.infoPanel:initialise()
+  self.infoPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
+  self.infoPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
+  self.infoPanel:setMargins(10, 10, 10, 10)
+  self:addChild(self.infoPanel)
 
-    -- Set info text
-    self.infoPanel:setText("<CENTRE><SIZE:medium>Card Slot Information</SIZE></CENTRE>\n" ..
-                          "<LINE><RGB:1,0.8,0.6>Cost: <RGB:1,1,1>1000 points per attempt\n" ..
-                          "<RGB:1,0.8,0.6>Success Rate: <RGB:1,1,1>1% chance\n" ..
-                          "<RGB:1,0.8,0.6>Maximum Slots: <RGB:1,1,1>" .. (ZM_CardSystem.MAX_SLOTS or 4))
+  -- Set info text
+  self.infoPanel:setText("<CENTRE><SIZE:medium>Card Slot Information</SIZE></CENTRE>\n" ..
+                         "<LINE><RGB:1,0.8,0.6>Cost: <RGB:1,1,1>1000 points per attempt\n" ..
+                         "<RGB:1,0.8,0.6>Success Rate: <RGB:1,1,1>1% chance\n" ..
+                         "<RGB:1,0.8,0.6>Maximum Slots: <RGB:1,1,1>" .. (ZM_CardSystem.MAX_SLOTS or 4))
 
-    -- Status section
-    local statusY = self.infoPanel:getY() + self.infoPanel:getHeight() + 15
-    self.statusPanel = ISPanel:new(padding, statusY, contentWidth, 60)
-    self.statusPanel:initialise()
-    self.statusPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
-    self.statusPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
-    self:addChild(self.statusPanel)
+  -- Status section
+  local statusY = self.infoPanel:getY() + self.infoPanel:getHeight() + 15
+  self.statusPanel = ISPanel:new(padding, statusY, contentWidth, 60)
+  self.statusPanel:initialise()
+  self.statusPanel.backgroundColor = {r=0.1, g=0.1, b=0.1, a=0.5}
+  self.statusPanel.borderColor = {r=0.3, g=0.3, b=0.3, a=1}
+  self:addChild(self.statusPanel)
 
-    -- Status text (centered)
-    self.statusText = "Select a weapon to add a card slot"
-    self.statusColor = {r=1, g=1, b=1}
-    self.statusLabel = ISLabel:new(0, 20, contentWidth, self.statusText,
-                                  self.statusColor.r, self.statusColor.g, self.statusColor.b,
-                                  1, UIFont.Medium, true)
-    self.statusLabel:initialise()
-    self.statusLabel:setX(contentWidth/2 - self.statusLabel:getWidth()/2)
-    self.statusPanel:addChild(self.statusLabel)
+  -- Status text (centered)
+  self.statusText = "Select a weapon to add a card slot"
+  self.statusColor = {r=1, g=1, b=1}
+  self.statusLabel = ISLabel:new(0, 20, contentWidth, self.statusText,
+                                 self.statusColor.r, self.statusColor.g, self.statusColor.b,
+                                 1, UIFont.Medium, true)
+  self.statusLabel:initialise()
+  self.statusLabel:setX(contentWidth / 2 - self.statusLabel:getWidth() / 2)
+  self.statusPanel:addChild(self.statusLabel)
 
-    -- Action button
-    local buttonY = self.statusPanel:getY() + self.statusPanel:getHeight() + 15
-    self.addSlotButton = ISButton:new(padding + 50, buttonY, contentWidth - 100, 40, "ADD CARD SLOT", self, ISAddCardSlotUI.onAddSlot)
-    self.addSlotButton:initialise()
-    self.addSlotButton.backgroundColor = {r=0.2, g=0.3, b=0.4, a=0.8}
-    self.addSlotButton.borderColor = {r=0.4, g=0.5, b=0.6, a=1}
-    self.addSlotButton.enable = false
-    self.addSlotButton:setFont(UIFont.Medium)
-    self:addChild(self.addSlotButton)
+  -- Action button
+  local buttonY = self.statusPanel:getY() + self.statusPanel:getHeight() + 15
+  self.addSlotButton = ISButton:new(padding + 50, buttonY, contentWidth - 100, 40, "ADD CARD SLOT", self, ISAddCardSlotUI.onAddSlot)
+  self.addSlotButton:initialise()
+  self.addSlotButton.backgroundColor = {r=0.2, g=0.3, b=0.4, a=0.8}
+  self.addSlotButton.borderColor = {r=0.4, g=0.5, b=0.6, a=1}
+  self.addSlotButton.enable = false
+  self.addSlotButton:setFont(UIFont.Medium)
+  self:addChild(self.addSlotButton)
 
-    self:refreshUI()
+  self:refreshUI()
 end
 
 function ISAddCardSlotUI:refreshUI()
