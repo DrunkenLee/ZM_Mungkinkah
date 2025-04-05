@@ -1,0 +1,22 @@
+module ZM_Mungkinkah
+{
+    imports
+    {
+        Base
+    }
+
+    item ZM_MysticOrb
+    {
+        DisplayName = Mystic Orb Weapon,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Battery,
+        DisplayCategory = Junk,
+        Tooltip = An enigmatic orb that radiates a mystical energy. It is said to hold ancient secrets and powers.,
+        WorldStaticModel = Battery_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Bind it to my weapon,
+        OnCustomContextMenu = ZM_MysticOrb.BindToWeapon,
+    }
+}
