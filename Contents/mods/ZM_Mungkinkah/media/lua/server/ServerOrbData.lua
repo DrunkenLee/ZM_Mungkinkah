@@ -46,66 +46,36 @@ local function deserializeTable(str)
     end
 end
 
--- Define where the data file will be stored
+-- Replace the problematic getDataFilePath function with this simpler version
 ServerOrbData.getDataFilePath = function()
-    return "MysticOrbBindings.lua"  -- Changed extension to .lua
+    -- Avoid all external function calls - just return a fixed filename
+    return "MysticOrbBindings.lua"
 end
 
--- Save bindings to disk
+-- Also replace the saveData function with a more robust version
 ServerOrbData.saveData = function()
-    -- Convert table to string using our serialization function
-    local dataToSave = ServerOrbData.bindings
-
-    -- Check if data is valid
-    if not dataToSave then
-        print("ERROR: No data to save")
-        return false
+    -- Use ModData API instead of file I/O for better reliability
+    if not ServerOrbData.bindings then
+        ServerOrbData.bindings = {}
     end
 
-    -- Serialize the table to string instead of using JSON
-    local serializedData = serializeTable(dataToSave)
+    -- Store data in global ModData which persists across saves
+    ModData.add("ZM_MysticOrb_Bindings", ServerOrbData.bindings)
+    ModData.transmit("ZM_MysticOrb_Bindings") -- Ensure it's transmitted in multiplayer
 
-    -- Save to file
-    local fileWriter = getFileWriter(ServerOrbData.getDataFilePath(), true, false)
-    if not fileWriter then
-        print("ERROR: Failed to open file for writing: " .. ServerOrbData.getDataFilePath())
-        return false
-    end
-
-    fileWriter:write(serializedData)
-    fileWriter:close()
-
-    print("DEBUG: Saved Mystic Orb binding data to disk")
+    print("DEBUG: Saved Mystic Orb binding data to ModData")
     return true
 end
 
--- Load bindings from disk
+-- Replace loadData with ModData version too
 ServerOrbData.loadData = function()
-    -- Check if file exists
-    local file = getFileReader(ServerOrbData.getDataFilePath(), false)
-    if not file then
-        print("DEBUG: No existing Mystic Orb binding data file found, using empty table")
+    -- Load from ModData instead of file
+    if ModData.exists("ZM_MysticOrb_Bindings") then
+        ServerOrbData.bindings = ModData.get("ZM_MysticOrb_Bindings") or {}
+    else
         ServerOrbData.bindings = {}
-        ServerOrbData.loaded = true
-        return
-    end
-
-    -- Read serialized data
-    local serializedData = ""
-    local line = file:readLine()
-    while line do
-        serializedData = serializedData .. line
-        line = file:readLine()
-    end
-    file:close()
-
-    -- Deserialize data
-    if serializedData and serializedData ~= "" then
-        local loadedData = deserializeTable(serializedData)
-        if loadedData then
-            ServerOrbData.bindings = loadedData
-            print("DEBUG: Loaded Mystic Orb binding data from disk with " .. tostring(tableSize(loadedData)) .. " entries")
-        end
+        -- Initialize the ModData
+        ModData.add("ZM_MysticOrb_Bindings", ServerOrbData.bindings)
     end
 
     ServerOrbData.loaded = true
@@ -135,7 +105,7 @@ ServerOrbData.addBinding = function(orbID, weaponID)
     return true
 end
 
--- Check if a weapon is bound
+-- Update the isWeaponBound function to ONLY match exact weapon IDs
 ServerOrbData.isWeaponBound = function(weaponFullType)
     if not ServerOrbData.loaded then
         ServerOrbData.loadData()
@@ -147,26 +117,13 @@ ServerOrbData.isWeaponBound = function(weaponFullType)
         return false, nil
     end
 
-    print("DEBUG: Checking if weapon is bound: " .. tostring(weaponFullType))
-
-    -- Check all bindings - exact match on weaponID
+    -- IMPORTANT: ONLY check for exact matches
     for orbID, weaponID in pairs(ServerOrbData.bindings) do
-        print("DEBUG: Comparing weapon ID: '" .. tostring(weaponID) .. "' with '" .. tostring(weaponFullType) .. "'")
-
-        -- Try exact match first (most reliable)
         if weaponID == weaponFullType then
-            print("DEBUG: Found exact match for weapon")
-            return true, orbID
-        end
-
-        -- If needed, try substring match too
-        if string.find(tostring(weaponID), tostring(weaponFullType)) then
-            print("DEBUG: Found substring match for weapon")
+            print("DEBUG: Found exact match for weapon ID")
             return true, orbID
         end
     end
-
-    print("DEBUG: No binding found for weapon: " .. tostring(weaponFullType))
     return false, nil
 end
 
@@ -194,5 +151,22 @@ end
 -- Initialize immediately
 ServerOrbData.loaded = true
 ServerOrbData.bindings = ServerOrbData.bindings or {}
+
+-- Ensure data is loaded when server starts and reloads
+Events.OnServerStarted.Add(function()
+    ServerOrbData.loadData()
+end)
+
+-- Also load on game start
+Events.OnGameStart.Add(function()
+    ServerOrbData.loadData()
+end)
+
+-- Also make sure to periodically save the data
+Events.EveryTenMinutes.Add(function()
+    if ServerOrbData.bindings and tableSize(ServerOrbData.bindings) > 0 then
+        ServerOrbData.saveData()
+    end
+end)
 
 return ServerOrbData

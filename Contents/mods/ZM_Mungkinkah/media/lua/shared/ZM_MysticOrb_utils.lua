@@ -34,10 +34,9 @@ function ZM_MysticOrb.CheckEquippedWeaponBinding()
         return true
     end
 
-    -- Otherwise, request binding status from server
-    print("DEBUG: Requesting binding status from server for equipped weapon")
-    sendClientCommand(player, "ZM_MysticOrb", "CheckWeaponBinding",
-        { weaponType = weapon:getType(), weaponFullType = weapon:getFullType() })
+    sendClientCommand(player, "ZM_MysticOrb", "CheckWeaponBinding", {
+        weaponID = tostring(weapon:getID())
+    })
 
     return true
 end
