@@ -1,0 +1,4 @@
+Items_EN = {
+    DisplayName_ZM_MysticOrb = "Mystic Orb",
+    Tooltip_ZM_MysticOrb = "An enigmatic orb that radiates a mystical energy. It is said to hold ancient secrets and powers.",
+}
