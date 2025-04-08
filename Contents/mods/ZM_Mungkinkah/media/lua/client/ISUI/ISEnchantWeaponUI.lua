@@ -569,17 +569,15 @@ function ISEnchantWeaponUI:new(x, y, width, height)
     return o
 end
 
--- Changed from local variable to global namespace
+local activeWeapons = {}
+
 _G.ZM_EnchantingUI = _G.ZM_EnchantingUI or nil
 
--- Updated function to display the UI - simplified approach
 function showEnchantWeaponUI()
-    -- Check if UI is already open using the global variable
     if _G.ZM_EnchantingUI and _G.ZM_EnchantingUI:isVisible() then
         return _G.ZM_EnchantingUI
     end
 
-    -- Create the UI directly without pcall for simpler debugging
     local ui = ISEnchantWeaponUI:new(
         (getCore():getScreenWidth() / 2) - 250,
         (getCore():getScreenHeight() / 2) - 150,
@@ -587,7 +585,6 @@ function showEnchantWeaponUI()
         370
     )
 
-    -- Initialize and show
     ui:initialise()
     ui:addToUIManager()
     _G.ZM_EnchantingUI = ui
@@ -595,28 +592,12 @@ function showEnchantWeaponUI()
     return ui
 end
 
--- Register with a different namespace to avoid conflicts
--- Use ZM_Commands instead of the global Commands table
 if not _G.ZM_Commands then _G.ZM_Commands = {} end
 _G.ZM_Commands.ShowEnchantUI = showEnchantWeaponUI
 
--- Add a keypress handler as an alternative way to open UI
--- local function onKeyPressed(key)
---     -- Open UI when Shift+E is pressed
---     if key == Keyboard.KEY_E and isKeyDown(Keyboard.KEY_LSHIFT) then
---         showEnchantWeaponUI()
---     end
--- end
-
--- Register the key handler
-Events.OnKeyPressed.Add(onKeyPressed)
-
--- Create a direct function to call from the console
 _G.OpenEnchantUI = showEnchantWeaponUI
 
--- Add this to the end of your file, before the last line
 
--- Sound handler for multiplayer - receives sound commands broadcasted from server
 local function ZM_SoundServerResponse(module, command, args)
   -- Only process our module's commands
   if module ~= "ZM_Mungkinkah" then return end
@@ -645,26 +626,6 @@ local function ZM_SoundServerResponse(module, command, args)
   end
 end
 
-local function onEquipPrimary(player, item)
-  if not item or not item:IsWeapon() then return end
-
-  -- Check if this weapon has enchantment data
-  if item:getModData() and item:getModData().enchantmentStats then
-      -- Get the stored damage values from ModData if they exist
-      if not item:getModData().savedDamageValues then return end
-
-      local savedMinDamage = item:getModData().savedDamageValues.minDamage
-      local savedMaxDamage = item:getModData().savedDamageValues.maxDamage
-
-      -- Reapply the enchanted damage values
-      if savedMinDamage and savedMaxDamage then
-          item:setMinDamage(savedMinDamage)
-          item:setMaxDamage(savedMaxDamage)
-          print("[ZM_Mungkinkah] Restored enchanted damage values for: " .. item:getName())
-      end
-  end
-end
-
 -- Save damage values when enchanting
 local originalRenameFunction = ISEnchantWeaponUI.renameEnchantedWeapon
 ISEnchantWeaponUI.renameEnchantedWeapon = function(self, weapon, username, isPositive)
@@ -683,26 +644,6 @@ ISEnchantWeaponUI.renameEnchantedWeapon = function(self, weapon, username, isPos
 
   return counter
 end
-
--- Register for equipment change events
-Events.OnEquipPrimary.Add(onEquipPrimary)
-Events.OnGameStart.Add(function()
-  -- Restore enchantments on game start for equipped weapon
-  local player = getSpecificPlayer(0)
-  if player then
-      local primaryItem = player:getPrimaryHandItem()
-      if primaryItem then
-          onEquipPrimary(player, primaryItem)
-      end
-  end
-end)
-
--- For firearms, also listen to OnWeaponSwing event
-Events.OnWeaponSwing.Add(function(character, weapon)
-  if character:isLocalPlayer() and weapon then
-      onEquipPrimary(character, weapon)
-  end
-end)
 
 -- Register the sound handler
 Events.OnServerCommand.Remove(ZM_SoundServerResponse)
