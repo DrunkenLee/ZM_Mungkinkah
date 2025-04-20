@@ -263,7 +263,6 @@ end
 
 local function ZM_EnchantWeaponServerResponse(module, command, args)
   -- Debug output with unique identifier
-  print("[ZM_EnchantWeapon] Received server command: " .. tostring(module) .. " / " .. tostring(command))
 
   if module == "EnchantWeapon" and command == "enchantResult" then
       print("[ZM_EnchantWeapon] Processing enchant result")
@@ -622,7 +621,6 @@ local function ZM_SoundServerResponse(module, command, args)
   if module ~= "ZM_Mungkinkah" then return end
 
   if command == "PlayWorldSound" then
-      print("[ZM_Mungkinkah] Received sound command: " .. tostring(args.sound))
 
       local sound = args.sound
       local volume = args.volume or 1.0

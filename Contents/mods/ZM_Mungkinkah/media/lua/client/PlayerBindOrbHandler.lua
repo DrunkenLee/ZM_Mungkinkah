@@ -82,7 +82,6 @@ end
 Events.OnServerCommand.Add(function(module, command, args)
     if module == "ZM_MysticOrb" then
         if command == "NotifyPlayer" then
-            print("DEBUG: NotifyPlayer received with message: " .. tostring(args.message))
             onNotifyPlayer(args)
         end
     end
