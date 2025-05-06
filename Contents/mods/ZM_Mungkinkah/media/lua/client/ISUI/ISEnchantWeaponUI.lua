@@ -141,6 +141,17 @@ function ISEnchantWeaponUI:onClick(button)
   local username = player:getUsername() or "Player"
   local pointCost = 2500
 
+  local playerPoints = GlobalMethods.getPlayerPoints(username) or 0
+  if playerPoints == 0 then
+      playerPoints = GlobalMethods.getPlayerPoints(username)
+  end
+
+  if playerPoints < pointCost then
+      self.statusText = "Not enough points! (Need: " .. pointCost .. ")"
+      self.statusColor = {r=1, g=0.3, b=0.3}
+      return
+  end
+
   -- Get current enchantment level - with safe access
   local enchantLevel = 0
   if weapon:getModData() and weapon:getModData().enchantmentStats then
