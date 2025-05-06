@@ -579,17 +579,15 @@ function ISEnchantWeaponUI:new(x, y, width, height)
     return o
 end
 
--- Changed from local variable to global namespace
+
 _G.ZM_EnchantingUI = _G.ZM_EnchantingUI or nil
 
--- Updated function to display the UI - simplified approach
+
 function showEnchantWeaponUI()
-    -- Check if UI is already open using the global variable
     if _G.ZM_EnchantingUI and _G.ZM_EnchantingUI:isVisible() then
         return _G.ZM_EnchantingUI
     end
 
-    -- Create the UI directly without pcall for simpler debugging
     local ui = ISEnchantWeaponUI:new(
         (getCore():getScreenWidth() / 2) - 250,
         (getCore():getScreenHeight() / 2) - 150,
@@ -597,7 +595,6 @@ function showEnchantWeaponUI()
         370
     )
 
-    -- Initialize and show
     ui:initialise()
     ui:addToUIManager()
     _G.ZM_EnchantingUI = ui
@@ -605,30 +602,251 @@ function showEnchantWeaponUI()
     return ui
 end
 
--- Register with a different namespace to avoid conflicts
--- Use ZM_Commands instead of the global Commands table
 if not _G.ZM_Commands then _G.ZM_Commands = {} end
 _G.ZM_Commands.ShowEnchantUI = showEnchantWeaponUI
 
--- Add a keypress handler as an alternative way to open UI
--- local function onKeyPressed(key)
---     -- Open UI when Shift+E is pressed
---     if key == Keyboard.KEY_E and isKeyDown(Keyboard.KEY_LSHIFT) then
---         showEnchantWeaponUI()
---     end
--- end
+function DebugApplyEnchantment(minDmg, maxDmg, enchantLevel, username)
+  local player = getSpecificPlayer(0)
+  if not player then return "ERROR: No player found" end
 
--- Register the key handler
-Events.OnKeyPressed.Add(onKeyPressed)
+  local weapon = player:getPrimaryHandItem()
+  if not weapon or not weapon:IsWeapon() then
+      return "ERROR: No weapon equipped"
+  end
 
--- Create a direct function to call from the console
+  -- Store original values for reporting
+  local originalName = weapon:getName()
+  local originalMin = weapon:getMinDamage()
+  local originalMax = weapon:getMaxDamage()
+  local originalLevel = weapon:getModData().enchantmentStats
+                        and weapon:getModData().enchantmentStats.enchantCounter or 0
+
+  -- Validate parameters
+  minDmg = minDmg or weapon:getMinDamage()
+  maxDmg = maxDmg or weapon:getMaxDamage()
+  enchantLevel = enchantLevel or 0
+  if enchantLevel > 10 then enchantLevel = 10 end
+  if enchantLevel < -10 then enchantLevel = -10 end
+  username = username or player:getUsername() or "debug"
+
+  -- Initialize result log
+  local result = "[DEBUG] Enchanting weapon: " .. originalName .. "\n"
+
+  -- First set to different values to force update
+  weapon:setMinDamage(originalMin + 1)
+  weapon:setMaxDamage(originalMax + 1)
+
+  -- Then set to desired values
+  weapon:setMinDamage(minDmg)
+  weapon:setMaxDamage(maxDmg)
+
+  -- Initialize ModData if needed
+  if not weapon:getModData().enchantmentStats then
+      weapon:getModData().enchantmentStats = {
+          enchantCounter = 0,
+          originalName = weapon:getName():gsub("_.*_[+-]%d+$", "")
+      }
+  end
+
+  -- Set enchantment level
+  weapon:getModData().enchantmentStats.enchantCounter = enchantLevel
+
+  -- Set enchantment flags
+  if not weapon:getModData().enchantments then
+      weapon:getModData().enchantments = {}
+  end
+  weapon:getModData().enchantments["minDamage"] = enchantLevel >= 0
+  weapon:getModData().enchantments["maxDamage"] = enchantLevel >= 0
+  weapon:getModData().enchanted = true
+
+  -- Save values for persistence
+  if not weapon:getModData().savedDamageValues then
+      weapon:getModData().savedDamageValues = {}
+  end
+  weapon:getModData().savedDamageValues.minDamage = minDmg
+  weapon:getModData().savedDamageValues.maxDamage = maxDmg
+
+  -- Rename the weapon
+  local baseName = weapon:getModData().enchantmentStats.originalName
+  local prefix = enchantLevel >= 0 and "+" or "-"
+  local absLevel = math.abs(enchantLevel)
+
+  if enchantLevel ~= 0 then
+      weapon:setName(baseName .. "_" .. username .. "_" .. prefix .. absLevel)
+  else
+      weapon:setName(baseName)
+  end
+
+  -- Force re-equipping to update the weapon
+  local tempWeapon = weapon
+  player:setPrimaryHandItem(nil)
+  player:setPrimaryHandItem(tempWeapon)
+
+  -- Append results
+  result = result .. "Changes applied:\n"
+  result = result .. "  Name: " .. originalName .. " -> " .. weapon:getName() .. "\n"
+  result = result .. "  Min damage: " .. originalMin .. " -> " .. weapon:getMinDamage() .. "\n"
+  result = result .. "  Max damage: " .. originalMax .. " -> " .. weapon:getMaxDamage() .. "\n"
+  result = result .. "  Enchant level: " .. originalLevel .. " -> " .. enchantLevel
+
+  -- Sync changes to the server
+  sendClientCommand("EnchantWeapon", "syncEnchantment", {
+      weaponID = weapon:getID(),
+      isPositive = enchantLevel >= originalLevel,
+      damageRoll = 10, -- Default roll
+      damageChange = math.max(minDmg - originalMin, maxDmg - originalMax),
+      damageCap = 0.8,
+      enchantLevel = enchantLevel,
+      minDamage = minDmg,
+      maxDamage = maxDmg
+  })
+
+  print(result)
+  return "Weapon enchantment applied and synced to server"
+end
+
+_G.DebugApplyEnchantment = DebugApplyEnchantment
+
+function DebugReplaceWeapon(minDmg, maxDmg, enchantLevel, username)
+  local player = getSpecificPlayer(0)
+  if not player then return "ERROR: No player found" end
+
+  local weapon = player:getPrimaryHandItem()
+  if not weapon or not weapon:IsWeapon() then
+      return "ERROR: No weapon equipped"
+  end
+
+  -- Store original info
+  local weaponType = weapon:getFullType()
+  local weaponName = weapon:getName()
+  local weaponCondition = weapon:getCondition()
+  local isEquipped = (player:getPrimaryHandItem() == weapon)
+  local weaponModData = weapon:getModData()
+
+  -- Create a completely new weapon
+  local inventory = player:getInventory()
+  local newWeapon = inventory:AddItem(weaponType)
+
+  -- Copy basic properties
+  newWeapon:setCondition(weaponCondition)
+  newWeapon:setMinDamage(minDmg)
+  newWeapon:setMaxDamage(maxDmg)
+
+  -- Copy mod data
+  for k, v in pairs(weaponModData) do
+      newWeapon:getModData()[k] = v
+  end
+
+  -- Set enchantment data
+  if not newWeapon:getModData().enchantmentStats then
+      newWeapon:getModData().enchantmentStats = {}
+  end
+  newWeapon:getModData().enchantmentStats.enchantCounter = enchantLevel
+  newWeapon:getModData().enchantmentStats.originalName =
+      weaponModData.enchantmentStats and weaponModData.enchantmentStats.originalName
+      or weaponName:gsub("_.*_[+-]%d+$", "")
+
+  -- Set enchantment flags
+  if not newWeapon:getModData().enchantments then
+      newWeapon:getModData().enchantments = {}
+  end
+  newWeapon:getModData().enchantments["minDamage"] = enchantLevel >= 0
+  newWeapon:getModData().enchantments["maxDamage"] = enchantLevel >= 0
+  newWeapon:getModData().enchanted = true
+
+  newWeapon:getModData().savedDamageValues = {
+      minDamage = minDmg,
+      maxDamage = maxDmg
+  }
+
+  username = username or player:getUsername() or "debug"
+  local baseName = newWeapon:getModData().enchantmentStats.originalName
+  local prefix = enchantLevel >= 0 and "+" or "-"
+  local absLevel = math.abs(enchantLevel)
+
+  if enchantLevel ~= 0 then
+      newWeapon:setName(baseName .. "_" .. username .. "_" .. prefix .. absLevel)
+  else
+      newWeapon:setName(baseName)
+  end
+
+  inventory:Remove(weapon)
+
+  if isEquipped then
+      player:setPrimaryHandItem(newWeapon)
+  end
+
+  sendClientCommand("EnchantWeapon", "syncEnchantment", {
+      weaponID = newWeapon:getID(),
+      isPositive = enchantLevel >= 0,
+      damageRoll = 10,
+      damageChange = 0.5,
+      damageCap = 0.8,
+      enchantLevel = enchantLevel,
+      minDamage = minDmg,
+      maxDamage = maxDmg
+  })
+
+  return "Weapon replaced with enchanted version. Min: " .. minDmg ..
+         ", Max: " .. maxDmg .. ", Level: " .. enchantLevel
+end
+
+_G.DebugReplaceWeapon = DebugReplaceWeapon
+
+
 _G.OpenEnchantUI = showEnchantWeaponUI
 
--- Add this to the end of your file, before the last line
 
--- Sound handler for multiplayer - receives sound commands broadcasted from server
+
+function requestWeaponEnchantmentDataFromServer(weapon)
+  if not weapon or not weapon:IsWeapon() then return false end
+
+  local player = getSpecificPlayer(0)
+  if not player then return false end
+
+  -- Send request to server
+  sendClientCommand("EnchantWeapon", "loadEnchantmentData", {
+      weaponID = weapon:getID(),
+      weaponType = weapon:getFullType()
+  })
+
+  print("[ZM_EnchantWeapon] Requested enchantment data from server for weapon: " .. weapon:getName())
+  return true
+end
+
+function saveWeaponEnchantmentDataToServer(weapon)
+    if not weapon or not weapon:IsWeapon() then return false end
+
+    local player = getSpecificPlayer(0)
+    if not player then return false end
+
+    -- Prepare the data to send
+    local enchantLevel = 0
+    local originalName = weapon:getName()
+
+    -- Use existing ModData if available (for transition)
+    if weapon:getModData().enchantmentStats then
+        enchantLevel = weapon:getModData().enchantmentStats.enchantCounter or 0
+        originalName = weapon:getModData().enchantmentStats.originalName or originalName
+    end
+
+    -- Send data to server
+    sendClientCommand("EnchantWeapon", "saveEnchantmentData", {
+        weaponID = weapon:getID(),
+        weaponType = weapon:getFullType(),
+        minDamage = weapon:getMinDamage(),
+        maxDamage = weapon:getMaxDamage(),
+        enchantLevel = enchantLevel,
+        isPositive = enchantLevel >= 0,
+        originalName = originalName:gsub("_.*_[+-]%d+$", "")
+    })
+
+    print("[ZM_EnchantWeapon] Sent enchantment data to server for weapon: " .. weapon:getName())
+    return true
+end
+
 local function ZM_SoundServerResponse(module, command, args)
-  -- Only process our module's commands
+
   if module ~= "ZM_Mungkinkah" then return end
 
   if command == "PlayWorldSound" then
@@ -674,12 +892,70 @@ local function onEquipPrimary(player, item)
   end
 end
 
--- Save damage values when enchanting
+local function handleServerEnchantmentResponse(module, command, args)
+  if module ~= "EnchantWeapon" then return end
+
+  -- Handle load result from server
+  if command == "loadEnchantmentResult" then
+      local player = getSpecificPlayer(0)
+      if not player then return end
+
+      local weaponID = args.weaponID
+
+      -- Find the weapon
+      local weapon = nil
+      local inventory = player:getInventory()
+      weapon = inventory:getItemById(weaponID)
+
+      if not weapon and player:getPrimaryHandItem() and player:getPrimaryHandItem():getID() == weaponID then
+          weapon = player:getPrimaryHandItem()
+      end
+
+      if not weapon then
+          print("[ZM_EnchantWeapon] ERROR: Weapon not found for server data")
+          return
+      end
+
+      -- Apply the data if we got a successful response
+      if args.success and args.enchantmentData then
+          print("[ZM_EnchantWeapon] Applying server enchantment data to: " .. weapon:getName())
+
+          -- Apply stats directly to weapon
+          weapon:setMinDamage(args.enchantmentData.minDamage)
+          weapon:setMaxDamage(args.enchantmentData.maxDamage)
+
+          -- Update weapon name
+          local originalName = args.enchantmentData.originalName
+          local enchantLevel = args.enchantmentData.enchantLevel
+          local username = player:getUsername()
+
+          if enchantLevel ~= 0 then
+              local prefix = enchantLevel > 0 and "+" or "-"
+              weapon:setName(originalName .. "_" .. username .. "_" .. prefix .. math.abs(enchantLevel))
+          else
+              weapon:setName(originalName)
+          end
+
+          -- Force refresh if this is the equipped weapon
+          if player:getPrimaryHandItem() == weapon then
+              local tempWeapon = weapon
+              player:setPrimaryHandItem(nil)
+              player:setPrimaryHandItem(tempWeapon)
+          end
+
+          print("[ZM_EnchantWeapon] Server enchantment data applied successfully")
+      else
+          print("[ZM_EnchantWeapon] No server data found for this weapon")
+      end
+  end
+end
+Events.OnServerCommand.Add(handleServerEnchantmentResponse)
+
+
 local originalRenameFunction = ISEnchantWeaponUI.renameEnchantedWeapon
 ISEnchantWeaponUI.renameEnchantedWeapon = function(self, weapon, username, isPositive)
   local counter = originalRenameFunction(self, weapon, username, isPositive)
 
-  -- Store the current damage values in ModData for restoration
   if not weapon:getModData().savedDamageValues then
       weapon:getModData().savedDamageValues = {}
   end
@@ -693,10 +969,8 @@ ISEnchantWeaponUI.renameEnchantedWeapon = function(self, weapon, username, isPos
   return counter
 end
 
--- Register for equipment change events
 Events.OnEquipPrimary.Add(onEquipPrimary)
 Events.OnGameStart.Add(function()
-  -- Restore enchantments on game start for equipped weapon
   local player = getSpecificPlayer(0)
   if player then
       local primaryItem = player:getPrimaryHandItem()
@@ -706,17 +980,14 @@ Events.OnGameStart.Add(function()
   end
 end)
 
--- For firearms, also listen to OnWeaponSwing event
 Events.OnWeaponSwing.Add(function(character, weapon)
   if character:isLocalPlayer() and weapon then
-      onEquipPrimary(character, weapon)
+      -- onEquipPrimary(character, weapon)
   end
 end)
 
--- Register the sound handler
 Events.OnServerCommand.Remove(ZM_SoundServerResponse)
 Events.OnServerCommand.Add(ZM_SoundServerResponse)
 print("[ZM_Mungkinkah] Registered sound server command handler")
 
--- Keep this line at the end of your file
 _G.OpenEnchantUI = showEnchantWeaponUI

@@ -24,11 +24,8 @@ function ZM_MysticOrb.BindToWeapon(playerObj, item)
 
     print("DEBUG: Starting orb binding process...")
 
-    -- Now player is guaranteed to be a valid player object
     player:Say("Attempting to bind orb...")
 
-    -- Generate a stable ID for the orb based on its UUID (if available) or other item properties
-    -- This makes the ID stable and not based on timestamps
     local orbID = "ZM_MysticOrb"
 
     -- If the item has a unique ID already, use it

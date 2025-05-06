@@ -16,6 +16,5 @@ local function addCheckBindingContextMenu(player, context, items)
     end
 end
 
--- Add to both inventory and world context menus
 Events.OnFillInventoryObjectContextMenu.Add(addCheckBindingContextMenu)
 Events.OnFillWorldObjectContextMenu.Add(addCheckBindingContextMenu)

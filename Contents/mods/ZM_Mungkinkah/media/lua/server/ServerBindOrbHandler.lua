@@ -168,7 +168,6 @@ Events.EveryHours.Add(function()
         if ServerOrbData.removeBinding then
             pcall(function() ServerOrbData.removeBinding(orbID) end)
         else
-            -- Fallback method
             ServerOrbData.bindings[orbID] = nil
         end
     end

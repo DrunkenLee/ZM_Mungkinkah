@@ -46,19 +46,14 @@ local function onNotifyPlayer(args)
         local player = getSpecificPlayer(0)
         if player then
             player:Say(args.message)
-
-            -- Check if this is a successful binding notification
             if args.orbWasBound and args.orbWasBound == true then
-                -- If the orb was successfully bound, try to find and remove it
                 if args.orbID then
-                    -- Find the orb in the player's inventory
                     local inventory = player:getInventory()
                     local items = inventory:getItems()
                     local foundItem = false
 
                     for i=0, items:size()-1 do
                         local item = items:get(i)
-                        -- IMPROVED MATCHING: Check for both the original ID format and the full ID
                         if item:getType() == "ZM_MysticOrb" and item:getModData().orbUniqueID then
                             local generatedOrbID = "ZM_MysticOrb_" .. item:getModData().orbUniqueID
                             if generatedOrbID == args.orbID then
