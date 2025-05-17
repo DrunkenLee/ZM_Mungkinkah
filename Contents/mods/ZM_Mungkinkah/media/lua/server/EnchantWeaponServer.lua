@@ -4,156 +4,265 @@ if isClient() then return end
 -- Structure: WeaponEnchantments[playerUsername][weaponID] = {enchantment data}
 local WeaponEnchantments = {}
 
--- Serialize and save weapon enchantments to disk
-local function saveWeaponEnchantmentsToFile()
-    local dirPath = "WeaponsData/"
-    local filePath = dirPath .. "server_weapon_enchantments.txt"
+local function addEnchantedWeaponToGlobalData(weaponID, username, weaponName, enchantLevel, isBroken)
+    print("[ZM_EnchantWeaponServer] Adding enchanted weapon to global data")
+    if not weaponID then return end
 
-    -- Create directory if needed
-    if not getFileWriter(dirPath .. "placeholder.txt", true, false) then
-        print("[ZM_EnchantWeaponServer] ERROR: Failed to create directory: " .. dirPath)
-        return false
+    -- Initialize global mod data if needed
+    if not ModData.exists("enchantedWeaponIds") then
+        ModData.add("enchantedWeaponIds", {})
     end
 
-    -- Serialize the data
-    local serializedData = {}
-    for username, weapons in pairs(WeaponEnchantments) do
-        if not serializedData[username] then
-            serializedData[username] = {}
-        end
+    local enchantedWeapons = ModData.get("enchantedWeaponIds")
 
-        for weaponID, data in pairs(weapons) do
-            local dataString = weaponID .. "|" ..
-                               tostring(data.minDamage) .. "|" ..
-                               tostring(data.maxDamage) .. "|" ..
-                               tostring(data.enchantLevel) .. "|" ..
-                               tostring(data.isPositive) .. "|" ..
-                               tostring(data.weaponType) .. "|" ..
-                               tostring(data.originalName) .. "|" ..
-                               tostring(data.timestamp)
-
-            table.insert(serializedData[username], dataString)
-        end
-    end
-
-    -- Write to file
-    local writer = getFileWriter(filePath, true, false)
-    if not writer then
-        print("[ZM_EnchantWeaponServer] ERROR: Failed to open file for writing: " .. filePath)
-        return false
-    end
-
-    for username, weaponsData in pairs(serializedData) do
-        writer:write("USER:" .. username .. "\n")
-        for _, dataString in ipairs(weaponsData) do
-            writer:write(dataString .. "\n")
-        end
-    end
-
-    writer:close()
-    print("[ZM_EnchantWeaponServer] Successfully saved weapon enchantments to file")
-    return true
-end
-
--- Load weapon enchantments from file
-local function loadWeaponEnchantmentsFromFile()
-    local dirPath = "WeaponsData/"
-    local filePath = dirPath .. "server_weapon_enchantments.txt"
-
-    local reader = getFileReader(filePath, false)
-    if not reader then
-        print("[ZM_EnchantWeaponServer] No saved weapon enchantments found")
-        return false
-    end
-
-    -- Clear existing data
-    WeaponEnchantments = {}
-
-    -- Read and parse file
-    local currentUser = nil
-    local line = reader:readLine()
-
-    while line do
-        if string.sub(line, 1, 5) == "USER:" then
-            currentUser = string.sub(line, 6)
-            WeaponEnchantments[currentUser] = {}
-        elseif currentUser and line ~= "" then
-            local parts = {}
-            for part in string.gmatch(line, "[^|]+") do
-                table.insert(parts, part)
-            end
-
-            if #parts >= 8 then
-                local weaponID = parts[1]
-                WeaponEnchantments[currentUser][weaponID] = {
-                    minDamage = tonumber(parts[2]),
-                    maxDamage = tonumber(parts[3]),
-                    enchantLevel = tonumber(parts[4]),
-                    isPositive = parts[5] == "true",
-                    weaponType = parts[6],
-                    originalName = parts[7],
-                    timestamp = tonumber(parts[8]) or 0
-                }
-            end
-        end
-
-        line = reader:readLine()
-    end
-
-    reader:close()
-    print("[ZM_EnchantWeaponServer] Successfully loaded weapon enchantments from file")
-    return true
-end
-
--- Save weapon enchantment data to server memory
-local function storeWeaponEnchantment(playerUsername, weaponID, weaponType, data)
-    if not playerUsername or not weaponID or not data then
-        print("[ZM_EnchantWeaponServer] ERROR: Missing required data for storage")
-        return false
-    end
-
-    -- Initialize user's data if needed
-    if not WeaponEnchantments[playerUsername] then
-        WeaponEnchantments[playerUsername] = {}
-    end
-
-    -- Store the data
-    WeaponEnchantments[playerUsername][weaponID] = {
-        minDamage = data.minDamage,
-        maxDamage = data.maxDamage,
-        enchantLevel = data.enchantLevel or 0,
-        isPositive = data.isPositive,
-        weaponType = weaponType,
-        originalName = data.originalName or "Unknown Weapon",
+    -- Add the weapon with metadata
+    enchantedWeapons[weaponID] = {
+        username = username,
+        weaponName = weaponName,
+        enchantLevel = enchantLevel,
+        isBroken = isBroken,
         timestamp = getGameTime():getWorldAgeHours()
     }
 
-    -- Save to file periodically (to avoid constant disk writes)
-    saveWeaponEnchantmentsToFile()
+    -- Save the mod data
+    ModData.transmit("enchantedWeaponIds")
+    print("[ZM_EnchantWeaponServer] Added weapon ID " .. weaponID .. " to global enchanted weapons database")
+end
 
+-- Serialize and save weapon enchantments to disk - separate file per user
+local function saveWeaponEnchantmentsToFile()
+    local dirPath = "WeaponsData/"
+    local saveCount = 0
+
+    -- Save each user's data to their own file
+    for username, weapons in pairs(WeaponEnchantments) do
+        local filePath = dirPath .. "weapons_" .. username .. ".txt"
+        print("[ZM_EnchantWeaponServer] Saving data for user: " .. username .. " to file: " .. filePath)
+
+        -- Write to file
+        local writer = getFileWriter(filePath, true, false)
+        if writer then
+            -- Write user header
+            writer:write("USER:" .. username .. "\n")
+
+            -- Write each weapon's data
+            local weaponsCount = 0
+            for weaponID, data in pairs(weapons) do
+                local dataString = weaponID .. "|" ..
+                       tostring(data.minDamage) .. "|" ..
+                       tostring(data.maxDamage) .. "|" ..
+                       tostring(data.enchantLevel) .. "|" ..
+                       tostring(data.isPositive) .. "|" ..
+                       tostring(data.weaponType) .. "|" ..
+                       tostring(data.originalName) .. "|" ..
+                       tostring(data.customName or "Unknown") .. "|" ..
+                       tostring(data.saveName or "INVALIDDATA") .. "|" ..
+                       tostring(data.timestamp) .. "|" ..
+                       tostring(data.boundToOrb or false)
+
+                writer:write(dataString .. "\n")
+                weaponsCount = weaponsCount + 1
+            end
+
+            writer:close()
+            saveCount = saveCount + 1
+            print("[ZM_EnchantWeaponServer] Saved " .. weaponsCount .. " weapons for " .. username)
+        else
+            print("[ZM_EnchantWeaponServer] ERROR: Failed to open file for writing: " .. filePath)
+        end
+    end
+
+    print("[ZM_EnchantWeaponServer] Successfully saved weapon data for " .. saveCount .. " users")
     return true
 end
 
--- Retrieve weapon enchantment data from server memory
-local function getWeaponEnchantment(playerUsername, weaponID)
-    if not playerUsername or not weaponID then
+-- Function to get weapon enchantment data for a specific username
+local function getUserWeaponData(username)
+    if not username or username == "" then
+        print("[ZM_EnchantWeaponServer] ERROR: No username provided")
         return nil
     end
-    print(playerUsername, weaponID .. " requested enchantment data")
-    -- Check if we have data for this player and weapon
-    if WeaponEnchantments[playerUsername] and
-       WeaponEnchantments[playerUsername][weaponID] then
-        return WeaponEnchantments[playerUsername][weaponID]
+
+    -- Define the file path
+    local filePath = "WeaponsData/weapons_" .. username .. ".txt"
+    print("[ZM_EnchantWeaponServer] Loading from: " .. filePath)
+
+    -- Create table to store weapons data
+    local weaponsData = {}
+
+    -- Try to open and read the file
+    local reader = getFileReader(filePath, false)
+    if not reader then
+        print("[ZM_EnchantWeaponServer] ERROR: Cannot read file for username: " .. username)
+        return nil
     end
 
-    return nil
+    -- Read the first line to verify username
+    local line = reader:readLine()
+    if not line or not line:find("USER:" .. username) then
+        print("[ZM_EnchantWeaponServer] ERROR: File does not contain data for username: " .. username)
+        reader:close()
+        return nil
+    end
+
+    -- Parse the file line by line
+    while true do
+        line = reader:readLine()
+        if not line then break end
+
+        -- Split the line into components
+        local parts = {}
+        for part in string.gmatch(line, "[^|]+") do
+            table.insert(parts, part)
+        end
+
+        -- If we have enough parts, construct the weapon data
+        if #parts >= 10 then
+            local weaponData = {
+                weaponID = parts[1],
+                minDamage = tonumber(parts[2]),
+                maxDamage = tonumber(parts[3]),
+                enchantLevel = tonumber(parts[4]),
+                isPositive = parts[5] ~= "nil" and parts[5] == "true",
+                weaponType = parts[6],
+                originalName = parts[7],
+                customName = parts[8],
+                saveName = parts[9],
+                timestamp = tonumber(parts[10]),
+                boundToOrb = parts[11] == "true"
+            }
+
+            table.insert(weaponsData, weaponData)
+        end
+    end
+
+    -- Close the file
+    reader:close()
+
+    print("[ZM_EnchantWeaponServer] Loaded " .. #weaponsData .. " weapons for " .. username)
+    return weaponsData
+end
+
+local function clearEnchantedWeaponIds()
+    -- Check if ModData exists before attempting to clear
+    if ModData.exists("enchantedWeaponIds") then
+        -- Reset to empty table
+        ModData.remove("enchantedWeaponIds")
+        ModData.add("enchantedWeaponIds", {})
+        -- Transmit the empty data to all clients
+        ModData.transmit("enchantedWeaponIds")
+        print("[ZM_EnchantWeaponServer] DEBUG: All enchanted weapon IDs have been cleared from ModData")
+        return true
+    else
+        print("[ZM_EnchantWeaponServer] DEBUG: No enchanted weapon IDs ModData exists to clear")
+        return false
+    end
 end
 
 -- Handle enchantment requests
 local function onClientCommand(module, command, player, data)
-    -- Extensive debugging for tracking
 
-    -- Handle sound broadcast request
+  if module == "EnchantWeapon" and command == "clearEnchantedWeaponIds" then
+    print("[ZM_EnchantWeaponServer] Received request to clear enchanted weapon IDs")
+
+    -- Check if player has admin privileges (optional security check)
+    local isAdmin = player:getAccessLevel() ~= "None"
+    if isAdmin then
+        local success = clearEnchantedWeaponIds()
+
+        -- Send confirmation to client
+        sendServerCommand(player, "EnchantWeapon", "clearEnchantedWeaponIdsResult", {
+            success = success
+        })
+
+        print("[ZM_EnchantWeaponServer] Cleared enchanted weapon IDs: " .. tostring(success))
+    else
+        print("[ZM_EnchantWeaponServer] Permission denied for player: " .. player:getUsername())
+        sendServerCommand(player, "EnchantWeapon", "clearEnchantedWeaponIdsResult", {
+            success = false,
+            error = "Permission denied"
+        })
+    end
+
+    return
+  end
+
+  if module == "EnchantWeapon" and command == "trackEnchantedWeapon" then
+      print("[ZM_EnchantWeaponServer] Tracking enchanted weapon")
+      if data then
+          print("[ZM_EnchantWeaponServer] Received data:")
+          for key, value in pairs(data) do
+            -- Handle different value types
+            local valueStr
+            if type(value) == "table" then
+              valueStr = "table"
+            else
+              valueStr = tostring(value)
+            end
+            print("  - " .. key .. " = " .. valueStr)
+          end
+      else
+          print("[ZM_EnchantWeaponServer] No data received")
+      end
+
+      local weaponID = data.weaponID
+      local username = player:getUsername()
+      local weaponName = data.weaponName
+      local enchantLevel = data.enchantLevel or 0
+      local isBroken = data.isBroken or false
+
+      if not weaponID then
+          print("[ZM_EnchantWeaponServer] ERROR: No weapon ID provided for tracking")
+          return
+      end
+
+      addEnchantedWeaponToGlobalData(weaponID, username, weaponName, enchantLevel, isBroken)
+
+      sendServerCommand(player, "EnchantWeapon", "trackingConfirmed", {
+          weaponID = weaponID,
+          success = true
+      })
+
+      return
+    end
+
+    if module == "EnchantWeapon" and command == "checkEnchantedWeapon" then
+      print("[ZM_EnchantWeaponServer] Checking if weapon exists in database")
+
+      local weaponID = data.weaponID
+      local isFound = false
+      local isBroken = false
+      local weaponMetadata = nil
+
+      -- Check if the weapon exists in the enchanted weapons database
+      if ModData.exists("enchantedWeaponIds") then
+          local enchantedWeapons = ModData.get("enchantedWeaponIds")
+
+          if enchantedWeapons and enchantedWeapons[weaponID] then
+              print("[ZM_EnchantWeaponServer] Found weapon ID " .. weaponID .. " in database")
+              print("[ZM_EnchantWeaponServer] Found weapon ID " .. weaponID .. " in database")
+              isFound = true
+              isBroken = enchantedWeapons[weaponID].isBroken or false
+              weaponMetadata = enchantedWeapons[weaponID]  -- Store metadata in a variable we can access later
+              print("[ZM_EnchantWeaponServer] Weapon found in database. Broken status: " .. tostring(isBroken))
+          else
+              print("[ZM_EnchantWeaponServer] Weapon not found in database")
+          end
+      else
+          print("[ZM_EnchantWeaponServer] No enchanted weapons database exists")
+      end
+
+      -- Send the result back to the client
+      sendServerCommand(player, "EnchantWeapon", "weaponCheckResult", {
+          weaponID = weaponID,
+          isFound = isFound,
+          isBroken = isBroken,
+          metadata = weaponMetadata  -- Use the variable we stored earlier
+      })
+
+      return  -- Add return statement to properly exit the handler
+    end
+
     if module == "ZM_Mungkinkah" and command == "PlayWorldSound" then
         print("[ZM_EnchantWeaponServer] Broadcasting sound: " .. tostring(data.sound))
 
@@ -229,7 +338,10 @@ local function onClientCommand(module, command, player, data)
           maxDamage = data.maxDamage,
           enchantLevel = data.enchantLevel,
           isPositive = data.isPositive,
-          originalName = data.originalName
+          originalName = data.originalName,
+          boundToOrb = data.boundToOrb, -- Include binding status from client
+          customName = data.customName,
+          saveName = data.saveName
       }
 
       -- Store in server-side storage
@@ -253,7 +365,6 @@ local function onClientCommand(module, command, player, data)
 
         -- Retrieve from server-side storage
         local enchantmentData = getWeaponEnchantment(username, weaponID)
-
         -- Send the data back to client
         sendServerCommand(player, "EnchantWeapon", "loadEnchantmentResult", {
             weaponID = weaponID,
@@ -450,6 +561,13 @@ local function onClientCommand(module, command, player, data)
 
           print("[ZM_EnchantWeaponServer] Enchantment applied successfully")
           success = true
+
+          -- ADD THIS: Track the enchanted weapon in global data
+          local weaponName = weapon:getName()
+          local username = playerObj:getUsername()
+          local isBroken = weapon:getCondition() <= 0 or data.isBroken or false
+          addEnchantedWeaponToGlobalData(weaponID, username, weaponName, enchantLevel, isBroken)
+          print("[ZM_EnchantWeaponServer] Weapon added to global tracking database")
       else
           print("[ZM_EnchantWeaponServer] ERROR: Invalid enchantment data from client! Changes too large.")
           print("[ZM_EnchantWeaponServer] Min diff: " .. math.abs(minDamage - currentMinDamage) ..
@@ -464,7 +582,24 @@ local function onClientCommand(module, command, player, data)
           success = success
       })
     end
+
+    if module == "EnchantWeapon" and command == "getUserWeapons" then
+        print("[ZM_EnchantWeaponServer] Getting weapons data for user: " .. tostring(data.username))
+        local username = data.username
+
+        -- Get the weapons data
+        local weaponsData = getUserWeaponData(username)
+
+        -- Send data back to the client
+        sendServerCommand(player, "EnchantWeapon", "receiveUserWeapons", {
+            username = username,
+            weapons = weaponsData
+        })
+        return
+    end
 end
+
+
 
 -- IMPORTANT: Make sure we remove any existing handler and add our new one
 Events.OnClientCommand.Remove(onClientCommand)

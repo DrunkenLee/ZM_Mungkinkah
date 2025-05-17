@@ -1,5 +1,5 @@
 -- Shared Mystic Orb Utilities
-local ZM_MysticOrb = {}
+ZM_MysticOrb = {}
 
 -- Useful constants and shared functions
 ZM_MysticOrb.MOD_ID = "ZM_MysticOrb"

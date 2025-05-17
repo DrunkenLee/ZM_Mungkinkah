@@ -7,11 +7,41 @@ ISEnchantWeaponUI = ISPanel:derive("ISEnchantWeaponUI")
 -- Global variable to track UI instance
 local EnchantingUI = nil
 
+-- First, add a callback system to track pending weapon checks
+if not _G.PendingWeaponChecks then
+    _G.PendingWeaponChecks = {}
+end
+
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
 
+-- Add this server response handler to process weapon checks
+local function handleWeaponCheckResponse(module, command, args)
+    if module == "EnchantWeapon" and command == "weaponCheckResult" then
+        local weaponID = args.weaponID
+        local isFound = args.isFound
+        local isBroken = args.isBroken or false
+
+        -- Check if we have a pending callback for this weapon
+        if _G.PendingWeaponChecks[weaponID] then
+            -- Call the callback with the result
+            _G.PendingWeaponChecks[weaponID](isFound, isBroken, args)
+            -- Remove the pending check
+            _G.PendingWeaponChecks[weaponID] = nil
+        end
+    end
+end
+
+-- Register the server response handler
+Events.OnServerCommand.Add(handleWeaponCheckResponse)
+
 function ISEnchantWeaponUI:initialise()
     ISPanel.initialise(self)
+
+    -- Always reset protection flag to false on UI initialization
+    if PlayerFlagHandler and PlayerFlagHandler.setFlag then
+        PlayerFlagHandler.setFlag("enchantProtection", false)
+    end
 end
 
 function ISEnchantWeaponUI:createChildren()
@@ -21,7 +51,7 @@ function ISEnchantWeaponUI:createChildren()
     local btnWid = 120
     local btnHgt = FONT_HGT_MEDIUM + 6
 
-    -- Enchant button
+    -- Enchant button (always start with 2500 points cost)
     self.enchantButton = ISButton:new(self.width/2 - btnWid/2, 150,
                                     btnWid, btnHgt, "Pay (2500 pts)",
                                     self, ISEnchantWeaponUI.onClick)
@@ -35,6 +65,16 @@ function ISEnchantWeaponUI:createChildren()
     self.statusText = "Ready to enchant"
     self.statusColor = {r=1, g=1, b=1}
 
+    -- Add protection checkbox (always start unchecked)
+    self.protectionCheckbox = ISTickBox:new(self.width/2 - 100, 280, 200, 20, "", self, ISEnchantWeaponUI.onToggleProtection)
+    self.protectionCheckbox:initialise()
+    self.protectionCheckbox:instantiate()
+    self.protectionCheckbox:addOption("Enable Enchant Protection (+10000 pts)")
+    -- Force it to be unchecked regardless of flag state
+    self.protectionCheckbox:setSelected(1, false)
+    self.protectionCheckbox.tooltip = "Protection prevents weapon breakage on negative enchantment, but costs 10,000 extra points"
+    self:addChild(self.protectionCheckbox)
+
     -- Close button
     self.closeButton = ISButton:new(self.width - btnWid - 10, self.height - btnHgt - 10,
                                   btnWid, btnHgt, "Close", self, ISEnchantWeaponUI.onClick)
@@ -44,9 +84,37 @@ function ISEnchantWeaponUI:createChildren()
     self.closeButton.borderColor = {r=0.4, g=0.4, b=0.4, a=0.9}
     self.closeButton.font = UIFont.Medium
     self:addChild(self.closeButton)
-
-    -- Initialize enchant results display
     self.enchantResult = nil
+end
+
+function ISEnchantWeaponUI:onToggleProtection(index, selected)
+    PlayerFlagHandler.giveFlag("enchantProtection", selected)
+    self:updateEnchantButton()
+end
+
+function ISEnchantWeaponUI:updateEnchantButton()
+    -- Remove old button if it exists
+    if self.enchantButton then
+        self:removeChild(self.enchantButton)
+    end
+
+    -- Button dimensions (same as in createChildren)
+    local btnWid = 120
+    local btnHgt = FONT_HGT_MEDIUM + 6
+
+    -- Get current protection status and calculate cost
+    local hasProtection = PlayerFlagHandler.getFlag("enchantProtection") or false
+    local cost = hasProtection and 12500 or 2500
+
+    -- Create new button with updated text
+    self.enchantButton = ISButton:new(self.width/2 - btnWid/2, 150,
+                                    btnWid, btnHgt, "Pay (" .. cost .. " pts)",
+                                    self, ISEnchantWeaponUI.onClick)
+    self.enchantButton:initialise()
+    self.enchantButton:instantiate()
+    self.enchantButton.borderColor = {r=0.4, g=0.4, b=0.4, a=0.9}
+    self.enchantButton.font = UIFont.Medium
+    self:addChild(self.enchantButton)
 end
 
 -- Add this helper function to rename weapons after enchantment
@@ -95,7 +163,11 @@ function ISEnchantWeaponUI:renameEnchantedWeapon(weapon, username, isPositive)
   return counter
 end
 
+-------------------------------------------- ON CLICK FUNCTION --------------------------------------------
+
 function ISEnchantWeaponUI:onClick(button)
+  local weaponIDExists = false
+  local serverEnchantLevel = 20
   if button.internal == "CLOSE" then
       self:close()
       return
@@ -109,167 +181,306 @@ function ISEnchantWeaponUI:onClick(button)
       return
   end
 
-  -- Get the weapon from player's hands - THIS WAS MISSING
+  -- Get the weapon from player's hands
   local weapon = player:getPrimaryHandItem()
-
-  -- Check if weapon exists and is a weapon
-  if not weapon or not weapon:IsWeapon() then
+  if not weapon then
       self.statusText = "No weapon in hand!"
       self.statusColor = {r=1, g=0.3, b=0.3}
       return
   end
 
-  -- Check if it's a melee weapon that needs the "Legend" requirement
-  local isMelee = not weapon:isRanged()
-  if isMelee then
-      local weaponName = weapon:getName() or ""
-      if not string.find(weaponName, "Legend") then
-          self.statusText = "Only legendary melee weapons can be enchanted!"
+  local weaponID = weapon:getID()
+  local weaponName = weapon:getName() or ""
+
+  -- Set UI status to "checking"
+  self.statusText = "Checking weapon database..."
+  self.statusColor = {r=0.7, g=0.7, b=0.7}
+
+  -- Send request to server to check if this weapon exists in the database
+  sendClientCommand("EnchantWeapon", "checkEnchantedWeapon", {
+      weaponID = weaponID,
+      weaponName = weaponName
+  })
+
+  -- Store callback for when server responds
+  _G.PendingWeaponChecks[weaponID] = function(isFound, isBroken, data)
+      -- If the weapon is found and is broken, update UI and weapon
+      print("DEBUG: Weapon check result - Found: " .. tostring(isFound) .. ", Broken: " .. tostring(isBroken))
+      print("DEBUG: Weapon check result - Found: " .. tostring(isFound) .. ", Broken: " .. tostring(isBroken))
+      print("DEBUG: Weapon check result - Found: " .. tostring(isFound) .. ", Broken: " .. tostring(isBroken))
+      print("DEBUG: Weapon check result - Found: " .. tostring(isFound) .. ", Broken: " .. tostring(isBroken))
+
+      if data then
+          weaponIDExists = true
+          if data.metadata and data.metadata.enchantLevel then
+              serverEnchantLevel = data.metadata.enchantLevel or 20
+          end
+          print("DEBUG: Weapon check data - " .. tostring(data))
+          print("DEBUG: Weapon check data - " .. tostring(data))
+          print("DEBUG: Weapon check data - " .. tostring(data))
+      end
+
+      if isFound and isBroken then
+          print("DEBUG: Weapon is Found and Broken")
+          self.statusText = "Found broken weapon in database with the same ID!"
           self.statusColor = {r=1, g=0.3, b=0.3}
+
+          -- Set condition to 0 if not already
+          if weapon:getCondition() > 0 then
+              weapon:setCondition(0)
+              player:Say("Awh shit! My weapon broke!")
+          end
           return
       end
+
+      -- Continue with normal enchantment flow if the weapon isn't broken
+      self:continueEnchantment(weapon, player, weaponIDExists, serverEnchantLevel)
   end
 
-  -- Check if weapon is already at maximum enchantment level (+10)
-  if weapon:getModData() and weapon:getModData().enchantmentStats and
-     weapon:getModData().enchantmentStats.enchantCounter == 10 then
-      self.statusText = "Weapon is too fragile for further enchantment (+10)!"
-      self.statusColor = {r=1, g=0.6, b=0.1}
+  -- Don't proceed yet - wait for server response via callback
+end
+
+-- Extract the rest of the enchantment logic to a separate function
+function ISEnchantWeaponUI:continueEnchantment(weapon, player, weaponIDExists, serverEnchantLevel)
+
+    local weaponName = weapon:getName() or ""
+    if string.find(weaponName, "Broken") then
+        self.statusText = "Weapon is broken!"
+        self.statusColor = {r=1, g=0.3, b=0.3}
+        return
+    end
+
+    -- Check if weapon exists and is a weapon
+    if not weapon:IsWeapon() then
+        self.statusText = "No weapon in hand!"
+        self.statusColor = {r=1, g=0.3, b=0.3}
+        return
+    end
+
+    -- Check if it's a melee weapon that needs the "Legend" requirement
+    local isMelee = not weapon:isRanged()
+    if isMelee then
+        local weaponName = weapon:getName() or ""
+        if not string.find(weaponName, "Legend") then
+            self.statusText = "Only legendary melee weapons can be enchanted!"
+            self.statusColor = {r=1, g=0.3, b=0.3}
+            return
+        end
+    end
+
+    -- Check if weapon is already at maximum enchantment level (+10)
+    if weapon:getModData() and weapon:getModData().enchantmentStats and
+       weapon:getModData().enchantmentStats.enchantCounter == 10 then
+        self.statusText = "Weapon is too fragile for further enchantment (+10)!"
+        self.statusColor = {r=1, g=0.6, b=0.1}
+        return
+    end
+    -- Get username for points check and payment
+    local username = player:getUsername() or "Player"
+    local hasProtection = PlayerFlagHandler.getFlag("enchantProtection") or false
+    local pointCost = 2500
+    if hasProtection then
+        pointCost = pointCost + 10000 -- Add 10,000 for protection
+    end
+
+    local playerPoints = GlobalMethods.getPlayerPoints(username) or 0
+    if playerPoints == 0 then
+        playerPoints = GlobalMethods.getPlayerPoints(username)
+    end
+
+    if playerPoints < pointCost then
+        self.statusText = "Not enough points! (Need: " .. pointCost .. ")"
+        self.statusColor = {r=1, g=0.3, b=0.3}
+        return
+    end
+
+    -- Get current enchantment level - with safe access
+    local enchantLevel = 0
+    if weapon:getModData() and weapon:getModData().enchantmentStats then
+        enchantLevel = weapon:getModData().enchantmentStats.enchantCounter or 0
+    end
+    local absLevel = math.abs(enchantLevel)
+
+    -- Determine damage cap based on absolute enchantment level
+    local damageCap = 0.2 -- Base cap is 30%
+    if absLevel >= 3 and absLevel < 5 then
+        damageCap = 0.4 -- 50% for +3 to +4
+    elseif absLevel >= 5 and absLevel < 7 then
+        damageCap = 0.6 -- 70% for +5 to +6
+    elseif absLevel >= 7 then
+        damageCap = 0.8 -- 100% for +7 and beyond
+    end
+
+    print(tostring(weaponIDExists) .. " ---- " .. tostring(serverEnchantLevel) .. " ---- " .. tostring(absLevel))
+    if weaponIDExists and serverEnchantLevel ~= enchantLevel and serverEnchantLevel ~= 20 then
+      print("DEBUG: Weapon ID exists on server, but enchantment level differs")
       return
-  end
-  -- Get username for points check and payment
-  local username = player:getUsername() or "Player"
-  local pointCost = 2500
+    end
 
-  local playerPoints = GlobalMethods.getPlayerPoints(username) or 0
-  if playerPoints == 0 then
-      playerPoints = GlobalMethods.getPlayerPoints(username)
-  end
-
-  if playerPoints < pointCost then
-      self.statusText = "Not enough points! (Need: " .. pointCost .. ")"
-      self.statusColor = {r=1, g=0.3, b=0.3}
-      return
-  end
-
-  -- Get current enchantment level - with safe access
-  local enchantLevel = 0
-  if weapon:getModData() and weapon:getModData().enchantmentStats then
-      enchantLevel = weapon:getModData().enchantmentStats.enchantCounter or 0
-  end
-  local absLevel = math.abs(enchantLevel)
-
-  -- Determine damage cap based on absolute enchantment level
-  local damageCap = 0.2 -- Base cap is 30%
-  if absLevel >= 3 and absLevel < 5 then
-      damageCap = 0.4 -- 50% for +3 to +4
-  elseif absLevel >= 5 and absLevel < 7 then
-      damageCap = 0.6 -- 70% for +5 to +6
-  elseif absLevel >= 7 then
-      damageCap = 0.8 -- 100% for +7 and beyond
-  end
-
-  -- Deduct points
-  GlobalMethods.takePlayerPoints(username, pointCost)
+    -- Deduct points
+    GlobalMethods.takePlayerPoints(username, pointCost)
 
 
-  -- Perform enchantment logic on the client - now affecting both damage values
-  local isPositive = ZombRand(10) < 6 -- 60% chance of positive outcome
-  local damageRoll = ZombRand(1, 21) -- Random roll between 1 and 20
-  local minDamage = weapon:getMinDamage()
-  local maxDamage = weapon:getMaxDamage()
+    -- Perform enchantment logic on the client - now affecting both damage values
+    local isPositive = ZombRand(10) < 6 -- 60% chance of positive outcome
 
-  -- Apply the dynamic cap to damage change based on enchantment level
-  local damageChange = math.min(damageRoll / 20, damageCap)
 
-  -- Store original values for UI display
-  local origMinDamage = minDamage
-  local origMaxDamage = maxDamage
+    ---- +7 ENCHANTMENT BREAKAGE CHECK ----
+    if enchantLevel and enchantLevel == 6 then
+        print("DEBUG: Enchantment level 6 detected")
+        isPositive = ZombRand(10) < 4
+    end
 
-  -- Apply changes to both min and max damage
-  if isPositive then
-      -- Positive outcome: increase both damages
-      minDamage = minDamage + damageChange
-      maxDamage = maxDamage + damageChange
-  else
-      -- Negative outcome: decrease both damages
-      minDamage = minDamage - damageChange
-      -- Ensure minimum damage doesn't go negative
-      if minDamage < 0 then minDamage = 0 end
-      maxDamage = maxDamage - damageChange
-      -- Ensure maximum damage doesn't go negative
-      if maxDamage < 0 then maxDamage = 0 end
-  end
+    ---- +8 ENCHANTMENT BREAKAGE CHECK ----
+    if enchantLevel and enchantLevel == 7 then
+        print("DEBUG: Enchantment level 7 detected")
+        isPositive = ZombRand(10) <= 3
+    end
 
-  -- Ensure min damage is always less than or equal to max damage
-  if minDamage > maxDamage then
-      minDamage = maxDamage
-  end
+    ---- +9 ENCHANTMENT BREAKAGE CHECK ----
+    if enchantLevel and enchantLevel == 8 then
+        print("DEBUG: Enchantment level 8 detected")
+        isPositive = ZombRand(10) <= 2
+    end
 
-  -- Play different sounds based on outcome
-  local x = player:getX()
-  local y = player:getY()
-  local z = player:getZ()
+    ---- +10 ENCHANTMENT BREAKAGE CHECK ----
+    if enchantLevel and enchantLevel == 9 then
+        print("DEBUG: Enchantment level 9 detected")
+        isPositive = ZombRand(10) <= 1
+    end
 
-  -- Play sound locally first
-  if isPositive then
-      getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
-  else
-      getSoundManager():PlaySound("rganvil", false, 1.0)
-  end
+    local damageRoll = ZombRand(1, 21) -- Random roll between 1 and 20
+    local minDamage = weapon:getMinDamage()
+    local maxDamage = weapon:getMaxDamage()
 
-  -- Send sound command to server to broadcast to all players
-  sendClientCommand(player, "ZM_Mungkinkah", "PlayWorldSound", {
-      x = x,
-      y = y,
-      z = z,
-      radius = 20,
-      volume = 1.0,
-      sound = isPositive and "rganvilsuccess" or "rganvil"
+
+    -- Apply the dynamic cap to damage change based on enchantment level
+    local damageChange = math.min(damageRoll / 20, damageCap)
+
+    -- Store original values for UI display
+    local origMinDamage = minDamage
+    local origMaxDamage = maxDamage
+
+    -- Apply changes to both min and max damage
+    if isPositive then
+        -- Positive outcome: increase both damages
+        minDamage = minDamage + damageChange
+        maxDamage = maxDamage + damageChange
+    else
+        -- Negative outcome: decrease both damages and check for enchant protection
+        if absLevel >= 7 then
+          local isEnchantProtection = PlayerFlagHandler.getFlag("enchantProtection")
+          if not isEnchantProtection then
+              DebugSetWeaponConditionToZero()
+
+              sendClientCommand("EnchantWeapon", "trackEnchantedWeapon", {
+                weaponID = weaponID,
+                weaponName = weaponName,
+                enchantLevel = enchantLevel,
+                isBroken = true
+              })
+
+              minDamage = minDamage - damageChange
+              maxDamage = maxDamage - damageChange
+          end
+        else
+
+          sendClientCommand("EnchantWeapon", "trackEnchantedWeapon", {
+            weaponID = weaponID,
+            weaponName = weaponName,
+            enchantLevel = enchantLevel,
+            isBroken = false
+          })
+
+          minDamage = minDamage - damageChange
+          if minDamage < 0 then minDamage = 0 end
+          maxDamage = maxDamage - damageChange
+          if maxDamage < 0 then maxDamage = 0 end
+          end
+    end
+
+    -- Ensure min damage is always less than or equal to max damage
+    if minDamage > maxDamage then
+        minDamage = maxDamage
+    end
+
+    -- Play different sounds based on outcome
+    local x = player:getX()
+    local y = player:getY()
+    local z = player:getZ()
+
+    -- Play sound locally first
+    if isPositive then
+        getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
+    else
+        getSoundManager():PlaySound("rganvil", false, 1.0)
+    end
+
+    -- Send sound command to server to broadcast to all players
+    sendClientCommand(player, "ZM_Mungkinkah", "PlayWorldSound", {
+        x = x,
+        y = y,
+        z = z,
+        radius = 20,
+        volume = 1.0,
+        sound = isPositive and "rganvilsuccess" or "rganvil"
+    })
+
+    -- Update weapon stats
+    weapon:setMinDamage(minDamage)
+    weapon:setMaxDamage(maxDamage)
+
+    -- Rename weapon based on enchantment outcome
+    local newLevel = self:renameEnchantedWeapon(weapon, username, isPositive)
+
+    -- Store enchantment result for UI - now includes both damage types
+    self.enchantResult = {
+        isPositive = isPositive,
+        damageRoll = damageRoll,
+        damageChange = damageChange,
+        damageCap = damageCap,
+        enchantLevel = newLevel,
+        newMinDamage = math.floor(minDamage * 10) / 10,
+        newMaxDamage = math.floor(maxDamage * 10) / 10,
+        origMinDamage = math.floor(origMinDamage * 10) / 10,
+        origMaxDamage = math.floor(origMaxDamage * 10) / 10
+    }
+
+    -- Update status text showing changes to both damage types
+    if isPositive then
+        self.statusText = "Success! Damage increased by (Cap: " .. damageCap .. ")"
+        self.statusColor = {r=0.3, g=1, b=0.3}
+    else
+        self.statusText = "Caution! Damage decreased by (Cap: " .. damageCap .. ")"
+        self.statusColor = {r=1, g=0.5, b=0.2}
+    end
+
+    -- Sync changes to the server
+    sendClientCommand("EnchantWeapon", "syncEnchantment", {
+        weaponID = weapon:getID(),
+        isPositive = isPositive,
+        damageRoll = damageRoll,
+        damageChange = damageChange,
+        damageCap = damageCap,
+        enchantLevel = newLevel,
+        minDamage = minDamage,
+        maxDamage = maxDamage
+    })
+
+    print("DEBUG: Enchantment applied and synced to server")
+end
+
+-------------------------------------------- ON CLICK FUNCTION --------------------------------------------
+
+function clearEnchantedWeaponIds()
+  local player = getSpecificPlayer(0)
+  if not player then return end
+
+  -- send client command to server to clear enchanted weapon IDs
+  sendClientCommand(player, "EnchantWeapon", "clearEnchantedWeaponIds", {
+      playerID = player:getOnlineID()
   })
-
-  -- Update weapon stats
-  weapon:setMinDamage(minDamage)
-  weapon:setMaxDamage(maxDamage)
-
-  -- Rename weapon based on enchantment outcome
-  local newLevel = self:renameEnchantedWeapon(weapon, username, isPositive)
-
-  -- Store enchantment result for UI - now includes both damage types
-  self.enchantResult = {
-      isPositive = isPositive,
-      damageRoll = damageRoll,
-      damageChange = damageChange,
-      damageCap = damageCap,
-      enchantLevel = newLevel,
-      newMinDamage = math.floor(minDamage * 10) / 10,
-      newMaxDamage = math.floor(maxDamage * 10) / 10,
-      origMinDamage = math.floor(origMinDamage * 10) / 10,
-      origMaxDamage = math.floor(origMaxDamage * 10) / 10
-  }
-
-  -- Update status text showing changes to both damage types
-  if isPositive then
-      self.statusText = "Success! Damage increased by (Cap: " .. damageCap .. ")"
-      self.statusColor = {r=0.3, g=1, b=0.3}
-  else
-      self.statusText = "Caution! Damage decreased by (Cap: " .. damageCap .. ")"
-      self.statusColor = {r=1, g=0.5, b=0.2}
-  end
-
-  -- Sync changes to the server
-  sendClientCommand("EnchantWeapon", "syncEnchantment", {
-      weaponID = weapon:getID(),
-      isPositive = isPositive,
-      damageRoll = damageRoll,
-      damageChange = damageChange,
-      damageCap = damageCap,
-      enchantLevel = newLevel,
-      minDamage = minDamage,
-      maxDamage = maxDamage
-  })
-
-  print("DEBUG: Enchantment applied and synced to server")
+  print("DEBUG: Enchanted weapon IDs cleared on server")
 end
 
 local function ZM_EnchantWeaponServerResponse(module, command, args)
@@ -332,7 +543,7 @@ local function handleSyncAcknowledgement(module, command, args)
         end
 
         -- Otherwise, revert to server values
-        print("[ZM_Mungkinkah] Server rejected changes, reverting to server values")
+        print("[ZM_Mungkah] Server rejected changes, reverting to server values")
         weapon:setMinDamage(args.minDamage)
         weapon:setMaxDamage(args.maxDamage)
 
@@ -413,6 +624,7 @@ end
 
 -- Draw UI with enhanced weapon status info
 function ISEnchantWeaponUI:prerender()
+    local hasProtection = PlayerFlagHandler.getFlag("enchantProtection") or false
     -- Draw background
     self:drawRect(0, 0, self.width, self.height, self.backgroundColor.a, self.backgroundColor.r, self.backgroundColor.g, self.backgroundColor.b)
     self:drawRectBorder(0, 0, self.width, self.height, self.borderColor.a, self.borderColor.r, self.borderColor.g, self.borderColor.b)
@@ -544,7 +756,7 @@ function ISEnchantWeaponUI:prerender()
     -- Adjusted enchantment result position
 -- In the prerender function, update this section:
     if self.enchantResult then
-      local resultY = priceInfoY + 30
+      local resultY = priceInfoY + 50
       local changeText = self.enchantResult.isPositive and "increased" or "decreased"
       local changeAmount = math.floor(self.enchantResult.damageChange * 100) / 100
 
@@ -796,7 +1008,32 @@ _G.DebugReplaceWeapon = DebugReplaceWeapon
 
 _G.OpenEnchantUI = showEnchantWeaponUI
 
+function DebugSetWeaponConditionToZero()
+  local player = getSpecificPlayer(0)
+  if not player then return "ERROR: No player found" end
 
+  local weapon = player:getPrimaryHandItem()
+  if not weapon or not weapon:IsWeapon() then
+      return "ERROR: No weapon equipped"
+  end
+
+  -- Store original condition for reporting
+  local originalCondition = weapon:getCondition()
+
+  -- Set condition to 0
+  weapon:setCondition(0)
+
+  -- Force re-equipping to update the weapon
+  local tempWeapon = weapon
+  player:setPrimaryHandItem(nil)
+  player:setPrimaryHandItem(tempWeapon)
+  player:Say("Awh shit! I should have been more careful")
+  -- Create result message
+  local result = "Weapon condition changed from " .. originalCondition .. " to 0"
+
+  print(result)
+  return result
+end
 
 function requestWeaponEnchantmentDataFromServer(weapon)
   if not weapon or not weapon:IsWeapon() then return false end
@@ -847,7 +1084,7 @@ end
 
 local function ZM_SoundServerResponse(module, command, args)
 
-  if module ~= "ZM_Mungkinkah" then return end
+  if module ~= "ZM_Mungkah" then return end
 
   if command == "PlayWorldSound" then
 
@@ -868,7 +1105,7 @@ local function ZM_SoundServerResponse(module, command, args)
       -- Play sound as music (similar to airdrop mod)
       -- getSoundManager():PlayAsMusic(sound, sound, false, volume)
 
-      -- print("[ZM_Mungkinkah] Playing sound: " .. sound .. " at volume: " .. volume)
+      -- print("[ZM_Mungkah] Playing sound: " .. sound .. " at volume: " .. volume)
   end
 end
 
@@ -883,11 +1120,15 @@ local function onEquipPrimary(player, item)
       local savedMinDamage = item:getModData().savedDamageValues.minDamage
       local savedMaxDamage = item:getModData().savedDamageValues.maxDamage
 
+      if enchantLevel and enchantLevel == 10 then
+          item:setCondition(100)
+          print("[ZM_Mungkah] Restored condition to 100 for +10 weapon: " .. item:getName())
+      end
       -- Reapply the enchanted damage values
       if savedMinDamage and savedMaxDamage then
           item:setMinDamage(savedMinDamage)
           item:setMaxDamage(savedMaxDamage)
-          print("[ZM_Mungkinkah] Restored enchanted damage values for: " .. item:getName())
+          print("[ZM_Mungkah] Restored enchanted damage values for: " .. item:getName())
       end
   end
 end
@@ -963,7 +1204,7 @@ ISEnchantWeaponUI.renameEnchantedWeapon = function(self, weapon, username, isPos
   weapon:getModData().savedDamageValues.minDamage = weapon:getMinDamage()
   weapon:getModData().savedDamageValues.maxDamage = weapon:getMaxDamage()
 
-  print("[ZM_Mungkinkah] Saved enchanted damage values: Min=" ..
+  print("[ZM_Mungkah] Saved enchanted damage values: Min=" ..
         weapon:getMinDamage() .. ", Max=" .. weapon:getMaxDamage())
 
   return counter
@@ -980,14 +1221,8 @@ Events.OnGameStart.Add(function()
   end
 end)
 
-Events.OnWeaponSwing.Add(function(character, weapon)
-  if character:isLocalPlayer() and weapon then
-      -- onEquipPrimary(character, weapon)
-  end
-end)
-
 Events.OnServerCommand.Remove(ZM_SoundServerResponse)
 Events.OnServerCommand.Add(ZM_SoundServerResponse)
-print("[ZM_Mungkinkah] Registered sound server command handler")
+print("[ZM_Mungkah] Registered sound server command handler")
 
 _G.OpenEnchantUI = showEnchantWeaponUI
