@@ -1112,6 +1112,12 @@ end
 local function onEquipPrimary(player, item)
   if not item or not item:IsWeapon() then return end
 
+  local weaponName = item:getName() or ""
+  if string.find(weaponName, "+10") then
+      -- If the weapon name contains "+10", set condition to 100
+      item:setCondition(100)
+      print("[ZM_Mungkah] Restored condition to 100 for +10 weapon: " .. item:getName())
+  end
   -- Check if this weapon has enchantment data
   if item:getModData() and item:getModData().enchantmentStats then
       -- Get the stored damage values from ModData if they exist
@@ -1120,10 +1126,6 @@ local function onEquipPrimary(player, item)
       local savedMinDamage = item:getModData().savedDamageValues.minDamage
       local savedMaxDamage = item:getModData().savedDamageValues.maxDamage
 
-      if enchantLevel and enchantLevel == 10 then
-          item:setCondition(100)
-          print("[ZM_Mungkah] Restored condition to 100 for +10 weapon: " .. item:getName())
-      end
       -- Reapply the enchanted damage values
       if savedMinDamage and savedMaxDamage then
           item:setMinDamage(savedMinDamage)

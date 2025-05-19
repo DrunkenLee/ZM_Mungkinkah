@@ -159,6 +159,33 @@ local function clearEnchantedWeaponIds()
     end
 end
 
+local function storeWeaponEnchantment(username, weaponID, weaponType, enchantmentData)
+    if not username or username == "" or not weaponID then
+        print("[ZM_EnchantWeaponServer] ERROR: Invalid username or weaponID for storing enchantment")
+        return false
+    end
+
+    -- Initialize user's weapons table if needed
+    if not WeaponEnchantments[username] then
+        WeaponEnchantments[username] = {}
+    end
+
+    -- Add timestamp to the data
+    enchantmentData.timestamp = getGameTime():getWorldAgeHours()
+    enchantmentData.weaponType = weaponType
+
+    -- Store the data
+    WeaponEnchantments[username][weaponID] = enchantmentData
+
+    -- Save to disk
+    local success = saveWeaponEnchantmentsToFile()
+
+    print("[ZM_EnchantWeaponServer] Stored weapon enchantment for " ..
+          username .. ", weapon ID: " .. weaponID)
+
+    return success
+end
+
 -- Handle enchantment requests
 local function onClientCommand(module, command, player, data)
 
@@ -333,18 +360,30 @@ local function onClientCommand(module, command, player, data)
 
       local weaponID = data.weaponID
       local weaponType = data.weaponType
+      local uniqueID = data.uniqueID or (weaponID .. "_" .. getGameTime():getWorldAgeHours())
+
       local enchantmentData = {
           minDamage = data.minDamage,
           maxDamage = data.maxDamage,
           enchantLevel = data.enchantLevel,
           isPositive = data.isPositive,
           originalName = data.originalName,
-          boundToOrb = data.boundToOrb, -- Include binding status from client
+          boundToOrb = data.boundToOrb,
           customName = data.customName,
-          saveName = data.saveName
+          saveName = data.saveName,
+          uniqueID = uniqueID,
+          timestamp = data.timestamp or getGameTime():getWorldAgeHours()
       }
 
-      -- Store in server-side storage
+      -- Initialize username's weapons table if needed
+      local username = player:getUsername()
+      if not WeaponEnchantments[username] then
+          WeaponEnchantments[username] = {}
+      end
+
+      -- Store using uniqueID as key instead of just weaponID
+      WeaponEnchantments[username][uniqueID] = enchantmentData
+
       local success = storeWeaponEnchantment(player:getUsername(), weaponID, weaponType, enchantmentData)
 
       -- Acknowledge the save

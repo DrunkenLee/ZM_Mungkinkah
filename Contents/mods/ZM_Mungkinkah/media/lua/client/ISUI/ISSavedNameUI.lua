@@ -175,7 +175,7 @@ function ISSavedNameUI:createChildren()
 
     local statusText = "Load your saved weapons list..."
     local statusTextWidth = getTextManager():MeasureStringX(UIFont.Medium, statusText)
-    self.statusText = ISTextEntryBox:new(statusText, PADDING, y, statusTextWidth + 10, LABEL_HEIGHT)
+    self.statusText = ISTextEntryBox:new(statusText, PADDING, y, statusTextWidth + 30, LABEL_HEIGHT)
     self.statusText:initialise()
     self.statusText:instantiate()
     self.statusText:setEditable(false)
@@ -280,7 +280,7 @@ end
 function ISSavedNameUI:onApplyButtonClicked()
     -- Make sure we have a weapon selected
     if not self.selectedWeaponIndex or not self.weaponsList[self.selectedWeaponIndex] then
-        -- self.statusText:setName("No weapon selected!")
+        self.statusText:setText("No weapon selected!")
         return
     end
 
@@ -289,29 +289,41 @@ function ISSavedNameUI:onApplyButtonClicked()
     local equippedWeapon = player:getPrimaryHandItem()
 
     if not equippedWeapon or not equippedWeapon:IsWeapon() then
-        -- self.statusText:setName("You must have a weapon equipped!")
+        self.statusText:setText("You must have a weapon equipped!")
         return
     end
 
     -- Get the selected weapon data
     local weapon = self.weaponsList[self.selectedWeaponIndex]
 
-    -- Apply the data to the equipped weapon (assuming ZM_SaveWeaponData.ApplyWeaponDataBySaveName exists)
+    -- Validate weapon type
+    local equippedType = equippedWeapon:getType()
+    local savedType = weapon.weaponType
+
+    if equippedType ~= savedType then
+        self.statusText:setText("Weapon type mismatch! Cannot apply " .. (savedType or "unknown") ..
+                              " stats to " .. (equippedType or "unknown") .. ".")
+        return
+    end
+
+    -- Apply the data to the equipped weapon
     if ZM_SaveWeaponData and ZM_SaveWeaponData.ApplyWeaponDataBySaveName then
         ZM_SaveWeaponData.ApplyWeaponDataBySaveName(weapon.saveName, function(success)
             if success then
-                -- self.statusText:setName("Applied " .. weapon.saveName .. " to your weapon!")
+                self.statusText:setText("Applied " .. weapon.saveName .. " to your weapon!")
             else
-                -- self.statusText:setName("Failed to apply weapon data!")
+                self.statusText:setText("Failed to apply weapon data!")
             end
         end)
     else
         -- Fallback if the apply function doesn't exist
         sendClientCommand("EnchantWeapon", "applyEnchantment", {
             saveName = weapon.saveName,
-            targetID = equippedWeapon:getID()
+            targetID = equippedWeapon:getID(),
+            sourceType = savedType,
+            targetType = equippedType
         })
-        -- self.statusText:setName("Sent request to apply " .. weapon.saveName)
+        self.statusText:setText("Sent request to apply " .. weapon.saveName)
     end
 end
 

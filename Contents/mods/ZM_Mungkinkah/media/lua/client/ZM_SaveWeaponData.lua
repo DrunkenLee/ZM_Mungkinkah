@@ -1,6 +1,6 @@
 ZM_SaveWeaponData = {}
 
-function ZM_SaveWeaponData.SaveEquippedWeaponData(saveName)
+function ZM_SaveWeaponData.SaveEquippedWeaponData(saveName, forceOverwrite)
     -- Get the local player
     local player = getSpecificPlayer(0)
     if not player then return nil end
@@ -9,12 +9,18 @@ function ZM_SaveWeaponData.SaveEquippedWeaponData(saveName)
         getPlayer():Say("I need to provide save name for this weapon.")
         return nil
     end
+
     -- Get the equipped weapon
     local weapon = player:getPrimaryHandItem()
     if not weapon or not weapon:IsWeapon() then
         print("[ZM_SaveWeaponData] No weapon equipped")
         return nil
     end
+
+    -- Generate a unique identifier for this save
+    -- Format: "saveName_weaponType_timestamp"
+    local timestamp = math.floor(getGameTime():getWorldAgeHours() * 100)
+    local uniqueID = saveName .. "_" .. weapon:getType() .. "_" .. timestamp
 
     -- Extract weapon data
     local weaponData = {
@@ -30,16 +36,17 @@ function ZM_SaveWeaponData.SaveEquippedWeaponData(saveName)
                       weapon:getModData().enchantmentStats.enchantCounter or 0,
         customName = weapon:getName(),
         saveName = saveName,
+        uniqueID = uniqueID,  -- Store the unique ID
+        timestamp = timestamp  -- Store the timestamp for sorting
     }
 
-    print("[ZM_SaveWeaponData] Saving weapon data for: " .. weaponData.weaponName)
-    -- Check if weapon is bound to orb using the existing system
+    print("[ZM_SaveWeaponData] Saving weapon data with unique ID: " .. uniqueID)
 
+    -- Check if weapon is bound to orb
     if ZM_MysticOrb and ZM_MysticOrb.CheckEquippedWeaponBinding then
         weaponData.boundToOrb = true
         print("[ZM_SaveWeaponData] Bound to orb: " .. tostring(weaponData.boundToOrb))
     else
-        -- Fallback method if the utility function isn't available
         weaponData.boundToOrb = weapon:getModData().boundToOrb or false
     end
 
@@ -64,9 +71,12 @@ function ZM_SaveWeaponData.SaveEquippedWeaponData(saveName)
         customName = weaponData.weaponName,
         boundToOrb = weaponData.boundToOrb,
         saveName = weaponData.saveName,
+        uniqueID = uniqueID,
+        timestamp = timestamp
     })
 
-    -- print("[ZM_SaveWeaponData] Sent weapon data to server for: " .. weaponData)
+    player:Say("Weapon saved as '" .. saveName .. "'")
+    print("[ZM_SaveWeaponData] Sent weapon data to server with unique ID: " .. uniqueID)
     return weaponData
 end
 
