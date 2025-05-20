@@ -136,11 +136,13 @@ Events.OnServerCommand.Add(function(module, command, args)
 end)
 
 -- Standard event handlers
-Events.OnEquipPrimary.Add(function(player, weapon)
-    if weapon and player:isLocalPlayer() then
-        checkIfNeeded(weapon)
-    end
-end)
+-- Events.OnEquipPrimary.Add(function(player, weapon)
+--     if not player or not weapon then return end
+--     if type(player) == "string" then return end
+--     if weapon and player:isLocalPlayer() then
+--         checkIfNeeded(weapon)
+--     end
+-- end)
 
 Events.OnGameStart.Add(function()
     -- Reset caches on game start
@@ -194,19 +196,27 @@ Events.OnWeaponSwing.Add(function(character, weapon)
 end)
 
 Events.OnWeaponHitCharacter.Add(function(wielder, target, weapon, damage)
-    if wielder:isLocalPlayer() and weapon then
-        applyDamageBoost(weapon)
-    end
+    if not wielder or not target or not weapon then return end
+    if type(wielder) == "string" then return end
+    if type(target) == "string" then return end
+      -- if wielder:isLocalPlayer() and weapon then
+          applyDamageBoost(weapon)
+      -- end
+
 end)
 
 -- Periodic check to ensure boosts remain applied
-Events.OnPlayerUpdate.Add(function(player)
-    if player:isLocalPlayer() and getTimestampMs() % 1000 < 20 then
-        local weapon = player:getPrimaryHandItem()
-        if weapon and weapon:IsWeapon() then
-            applyDamageBoost(weapon)
-        end
-    end
-end)
+-- Events.OnPlayerUpdate.Add(function(player)
+--   if not player then return end
+--   if type(player) == "string" then return end
+
+--     if player:isLocalPlayer() and getTimestampMs() % 1000 < 20 then
+--         local weapon = player:getPrimaryHandItem()
+--         if weapon and weapon:IsWeapon() then
+--             applyDamageBoost(weapon)
+--         end
+--     end
+
+-- end)
 
 print("DEBUG: Improved Mystic Orb damage boost system loaded!")
