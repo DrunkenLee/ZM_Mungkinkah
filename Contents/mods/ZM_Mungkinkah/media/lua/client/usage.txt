@@ -1,0 +1,50 @@
+local weapon = getPlayer():getPrimaryHandItem()
+ZMWeaponData.saveWeaponEnchantmentDataToServer(weapon)
+
+local weapon = getPlayer():getPrimaryHandItem()
+ZMWeaponData.loadWeaponEnchantmentDataFromServer(weapon)
+
+
+
+Apply Custom Enchant
+DebugApplyEnchantment(minDMG, maxDMG, enchantment, name)
+DebugApplyEnchantment(4.5, 7.7, 10, "admin")
+
+Replace Weapon ID with custom Enchant
+DebugReplaceWeapon(2.55, 3.15, 4, "admin")
+
+
+saveWeaponEnchantmentDataToServer(getPlayer():getPrimaryHandItem())
+
+print(getPlayer():getPrimaryHandItem():getID())
+
+
+ZM_GetWeaponData.RequestUserWeaponData(getPlayer():getUsername())
+ZM_SaveWeaponData.SaveEquippedWeaponData("SavedName1")
+
+
+
+
+
+local player = getSpecificPlayer(0)
+
+local x = player:getX()
+local y = player:getY()
+local z = player:getZ()
+local square = getCell():getGridSquare(x, y, z)
+
+local clanData = BanditCustom.ClanGetAllSorted()
+for cid, clan in pairs(clanData) do
+    print("Clan ID: " .. cid .. " - Name: " .. clan.general.name)
+end
+
+BanditMenu.SpawnClan(player, square, "a2dec2f0-c76d-4640-8a71-733a547a1ebc")
+
+
+
+
+local clanData = BanditCustom.ClanGetAll()
+
+for cid, clan in pairs(clanData) do
+    print("Clan ID: " .. cid .. " - Name: " .. clan.general.name)
+end
