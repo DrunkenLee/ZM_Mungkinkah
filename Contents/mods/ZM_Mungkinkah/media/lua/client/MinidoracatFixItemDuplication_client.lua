@@ -184,10 +184,17 @@ safeAddEvent(Events.OnPlayerConnect, MinidoracatFixItemDuplication.OnPlayerConne
 
 
 Events.EveryTenMinutes.Add(function()
-  if ZombRand(10) > 5 then
-    -- getPlayer():Say("Checking for duplicate items...")
     DupeA.CheckAndDeleteDupesAroundPlayer(getSpecificPlayer(0))
-  end
 end)
+
+if EventsPlus then
+  EventsPlus:Add("OnItemMoved", function(character, item, source, destination)
+    local itemCat = item:getCategory()
+    if itemCat == "Weapon" then
+      DupeA.CheckAndDeleteDupesAroundPlayer(getSpecificPlayer(0))
+    end
+  end, "My callback context")
+end
+
 
 print("[MinidoracatFixItemDuplication] Client-side script loaded")

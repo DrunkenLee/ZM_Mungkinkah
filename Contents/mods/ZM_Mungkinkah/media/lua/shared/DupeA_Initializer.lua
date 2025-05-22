@@ -8,6 +8,12 @@ end
 
 function DupeA.SearchItemsInContainer(container, x, y, z)
     local list = {}
+
+    if DupeA.IsCorpseContainer(container) then
+        print("[DupeA] Skipping corpse container: " .. container:getType())
+        return list
+    end
+
     local items = container:getItems()
     if not items then return list end
     for i = 0, items:size()-1 do
@@ -42,6 +48,30 @@ function DupeA.IsItemMoved(container)
     end
 
     return moved
+end
+
+function DupeA.IsCorpseContainer(container)
+    if not container then return false end
+
+    -- Check container type first (some corpse containers have specific types)
+    local containerType = container:getType()
+    if containerType and (
+        containerType:find("[cC]orpse") or
+        containerType:find("[dD]ead") or
+        containerType:find("[bB]ody") or
+        containerType == "inventorymale" or  -- Often used for corpse inventories
+        containerType == "inventoryfemale"
+    ) then
+        return true
+    end
+
+    -- Check containing item if available
+    local containingItem = container:getContainingItem()
+    if containingItem and DupeA.IsDeadBody(containingItem) then
+        return true
+    end
+
+    return false
 end
 
 function DupeA.AnalyzeItems(coords, tittle, player)
