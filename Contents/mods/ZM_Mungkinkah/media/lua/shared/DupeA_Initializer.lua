@@ -66,10 +66,10 @@ function DupeA.IsCorpseContainer(container)
     end
 
     -- Check containing item if available
-    local containingItem = container:getContainingItem()
-    if containingItem and DupeA.IsDeadBody(containingItem) then
-        return true
-    end
+    -- local containingItem = container:getContainingItem()
+    -- if containingItem and DupeA.IsDeadBody(containingItem) then
+    --     return true
+    -- end
 
     return false
 end

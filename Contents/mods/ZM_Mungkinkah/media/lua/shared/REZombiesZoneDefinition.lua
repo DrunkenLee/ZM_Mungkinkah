@@ -1,0 +1,2 @@
+ZombiesZoneDefinition = ZombiesZoneDefinition or {};
+
