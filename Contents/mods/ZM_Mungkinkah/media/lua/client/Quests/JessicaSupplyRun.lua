@@ -67,12 +67,7 @@ function JessicaSupplyRun.fillSuppliesToAmbulance(player, part)
     -- Safety check
     if not player then return false end
 
-    local ambulance = player:getVehicle()
-
-    if not ambulance or ambulance:getScriptName() ~= "Base.VanAmbulance" then
-        print("Player is not in an ambulance")
-        return false
-    end
+    -- No need to check for ambulance anymore
 
     -- Define the supplies to add (using REAL item IDs)
     local supplies = {
@@ -84,15 +79,8 @@ function JessicaSupplyRun.fillSuppliesToAmbulance(player, part)
         { itemID = "Base.Pills", name = "Jessicas_Painkillers", count = 50, part = 3 }
     }
 
-    -- Get the trunk part of the ambulance to verify it exists
-    local trunkPart = ambulance:getPartById("TruckBed")
-    if not trunkPart or not trunkPart:getItemContainer() then
-        print("Cannot access ambulance trunk")
-        return false
-    end
-
     -- Start the timed action - 30 seconds
-    local action = ISFillAmbulanceSuppliesAction:new(player, ambulance, supplies, part, 30 * 60)
+    local action = ISFillAmbulanceSuppliesAction:new(player, nil, supplies, part, 30 * 60)
     ISTimedActionQueue.add(action)
 
     return true
@@ -267,23 +255,15 @@ local function onServerCommand(module, command, args)
                 if cell then
                     local allVehicles = cell:getVehicles()
                     if allVehicles then
-                        for i = 0, allVehicles:size()-1 do
+                        for i = 0, 2 do
                             local vehicle = allVehicles:get(i)
                             if vehicle and vehicle:getId() == args.vehicleID then
-                                -- Try multiple methods to ensure removal
                                 print("Removing ambulance from client side")
-                                vehicle:setAlpha(0.0) -- Make invisible first
-                                if not vehicle._alreadyRemoved then
-                                  vehicle:removeFromWorld()
-                                  vehicle:removeFromSquare()
-                                  vehicle._alreadyRemoved = true
-                                end
+                                vehicle:setAlpha(0.0)
+                                vehicle:removeFromWorld()
+                                vehicle:removeFromSquare()
 
-                                -- As a last resort
-                                if isClient() then
-                                    vehicle:permanentlyRemove() -- More forceful removal
-                                end
-                                break
+                                break -- VERY IMPORTANT: stop after removing the correct vehicle!
                             end
                         end
                     end
@@ -325,11 +305,10 @@ print("Jessica's Supply Run initialized")
 -- Timed action for filling ambulance supplies
 ISFillAmbulanceSuppliesAction = ISBaseTimedAction:derive("ISFillAmbulanceSuppliesAction")
 
+-- Update the timed action's isValid to not require being in an ambulance
 function ISFillAmbulanceSuppliesAction:isValid()
-    -- Make sure player is still in the ambulance
-    return self.ambulance ~= nil and
-           self.character:getVehicle() == self.ambulance and
-           self.ambulance:getScriptName() == "Base.VanAmbulance"
+    -- Only check that the player exists
+    return self.character ~= nil
 end
 
 function ISFillAmbulanceSuppliesAction:update()
@@ -404,9 +383,9 @@ function ISFillAmbulanceSuppliesAction:perform()
     end
 
     -- Mark ambulance as being associated with Jessica's quest
-    local modData = self.ambulance:getModData()
-    modData.isJessicaQuestAmbulance = true
-    modData.lastSuppliesPart = self.part or "all"
+    -- local modData = self.ambulance:getModData()
+    -- modData.isJessicaQuestAmbulance = true
+    -- modData.lastSuppliesPart = self.part or "all"
 end
 
 function ISFillAmbulanceSuppliesAction:new(character, ambulance, supplies, part, time)
