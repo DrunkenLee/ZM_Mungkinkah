@@ -63,7 +63,7 @@ function JessicaSupplyRun.checkAndSpawnAmbulance(player)
     return nil
 end
 
-function JessicaSupplyRun.fillSuppliesToAmbulance(player, part)
+function JessicaSupplyRun.fillSuppliesToAmbulance(player, part, flag)
     -- Safety check
     if not player then return false end
 
@@ -80,7 +80,7 @@ function JessicaSupplyRun.fillSuppliesToAmbulance(player, part)
     }
 
     -- Start the timed action - 30 seconds
-    local action = ISFillAmbulanceSuppliesAction:new(player, nil, supplies, part, 30 * 60)
+    local action = ISFillAmbulanceSuppliesAction:new(player, nil, supplies, flag, part, 30 * 60)
     ISTimedActionQueue.add(action)
 
     return true
@@ -382,16 +382,19 @@ function ISFillAmbulanceSuppliesAction:perform()
         print("Added " .. itemsAdded .. " items to player inventory.")
     end
 
+    CharacterManager.instance:addFlag(self.flag)
+
     -- Mark ambulance as being associated with Jessica's quest
     -- local modData = self.ambulance:getModData()
     -- modData.isJessicaQuestAmbulance = true
     -- modData.lastSuppliesPart = self.part or "all"
 end
 
-function ISFillAmbulanceSuppliesAction:new(character, ambulance, supplies, part, time)
+function ISFillAmbulanceSuppliesAction:new(character, ambulance, supplies, flag, part, time)
     local o = {}
     setmetatable(o, self)
     self.__index = self
+    o.flag = flag
     o.character = character
     o.ambulance = ambulance
     o.supplies = supplies
