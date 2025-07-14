@@ -78,7 +78,6 @@ local function addMysticOrbContextMenu(player, context, items)
     end
 end
 
--- Hook into the OnFillInventoryObjectContextMenu event
 Events.OnFillInventoryObjectContextMenu.Add(addMysticOrbContextMenu)
 
 return ZM_MysticOrb

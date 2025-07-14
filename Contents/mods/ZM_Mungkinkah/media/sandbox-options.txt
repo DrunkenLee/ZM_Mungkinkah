@@ -6,3 +6,39 @@ option ZM_Mungkinkah.option
     default = 1,
     page = Mungkinkah
 }
+
+option ZM_Autoshop.vehicleScriptNames1
+{
+    type = string,
+    default = "Base.Ambulance",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames1,
+}
+
+option ZM_Autoshop.vehicleScriptNames1Price
+{
+    type = integer,
+    min = 0,
+    max = 100000,
+    default = 100000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames1Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames2
+{
+    type = string,
+    default = "Base.fhqDiabloPolice",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames2,
+}
+
+option ZM_Autoshop.vehicleScriptNames2Price
+{
+    type = integer,
+    min = 0,
+    max = 100000,
+    default = 100000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames2Price,
+}

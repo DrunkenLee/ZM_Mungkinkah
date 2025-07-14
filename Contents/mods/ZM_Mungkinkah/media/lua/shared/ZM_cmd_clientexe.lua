@@ -31,12 +31,6 @@ local function onServerCommand(author, args)
     local username = args[1];
     local functionName = args[2];
 
-    -- We no longer need to get the player object
-    -- Just check if the player exists in the server's player list
-    -- if not getPlayerFromUsername(username) then
-    --     return "Player not found: " .. username;
-    -- end
-
     -- Create a table for any additional arguments
     local functionArgs = {};
     for i = 3, #args do

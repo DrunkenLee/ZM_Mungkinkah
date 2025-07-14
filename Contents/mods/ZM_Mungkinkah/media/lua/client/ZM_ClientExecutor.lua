@@ -36,7 +36,6 @@ local RemoteFunctions = {
     end,
 
     togglezmflag = function(args)
-        -- Access the global PlayerFlagHandler directly
         if not _G.PlayerFlagHandler then
             print("Error: PlayerFlagHandler not found in global scope");
             return;
@@ -52,14 +51,11 @@ local RemoteFunctions = {
             local username = player:getUsername();
             local flagName = args[1];
 
-            -- Get current flag value
             local currentValue = false;
-            -- Only call getFlagOnPlayer if the function exists
             if _G.PlayerFlagHandler.getFlagOnPlayer then
                 currentValue = _G.PlayerFlagHandler.getFlagOnPlayer(username, flagName);
             end
 
-            -- Toggle the flag
             _G.PlayerFlagHandler.setFlagOnPlayer(username, flagName, not currentValue);
             player:Say("ZM Flag '" .. flagName .. "' toggled for player: " .. username);
         end

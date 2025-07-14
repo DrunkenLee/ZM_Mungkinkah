@@ -174,11 +174,9 @@ local function safeRemoveEvent(event, func)
     end
 end
 
--- 移除任何現有的事件處理器以防止重複
 safeRemoveEvent(Events.OnRefreshInventoryWindowContainers, MinidoracatFixItemDuplication.OnRefreshInventoryWindowContainers)
 safeRemoveEvent(Events.OnPlayerConnect, MinidoracatFixItemDuplication.OnPlayerConnect)
 
--- 註冊事件處理器
 safeAddEvent(Events.OnRefreshInventoryWindowContainers, MinidoracatFixItemDuplication.OnRefreshInventoryWindowContainers)
 safeAddEvent(Events.OnPlayerConnect, MinidoracatFixItemDuplication.OnPlayerConnect)
 
