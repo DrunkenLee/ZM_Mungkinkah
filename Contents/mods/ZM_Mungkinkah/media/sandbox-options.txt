@@ -19,7 +19,7 @@ option ZM_Autoshop.vehicleScriptNames1Price
 {
     type = integer,
     min = 0,
-    max = 100000,
+    max = 1000000,
     default = 100000,
     page = ZMAUTOSHOP,
     translation = vehicleScriptNames1Price,
@@ -37,8 +37,152 @@ option ZM_Autoshop.vehicleScriptNames2Price
 {
     type = integer,
     min = 0,
-    max = 100000,
+    max = 1000000,
     default = 100000,
     page = ZMAUTOSHOP,
     translation = vehicleScriptNames2Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames3
+{
+    type = string,
+    default = "",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames3,
+}
+
+option ZM_Autoshop.vehicleScriptNames3Price
+{
+    type = integer,
+    min = 0,
+    max = 1000000,
+    default = 50000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames3Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames4
+{
+    type = string,
+    default = "",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames4,
+}
+
+option ZM_Autoshop.vehicleScriptNames4Price
+{
+    type = integer,
+    min = 0,
+    max = 1000000,
+    default = 50000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames4Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames5
+{
+    type = string,
+    default = "",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames5,
+}
+
+option ZM_Autoshop.vehicleScriptNames5Price
+{
+    type = integer,
+    min = 0,
+    max = 1000000,
+    default = 50000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames5Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames6
+{
+    type = string,
+    default = "",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames6,
+}
+
+option ZM_Autoshop.vehicleScriptNames6Price
+{
+    type = integer,
+    min = 0,
+    max = 1000000,
+    default = 50000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames6Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames7
+{
+    type = string,
+    default = "",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames7,
+}
+
+option ZM_Autoshop.vehicleScriptNames7Price
+{
+    type = integer,
+    min = 0,
+    max = 1000000,
+    default = 50000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames7Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames8
+{
+    type = string,
+    default = "",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames8,
+}
+
+option ZM_Autoshop.vehicleScriptNames8Price
+{
+    type = integer,
+    min = 0,
+    max = 1000000,
+    default = 50000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames8Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames9
+{
+    type = string,
+    default = "",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames9,
+}
+
+option ZM_Autoshop.vehicleScriptNames9Price
+{
+    type = integer,
+    min = 0,
+    max = 1000000,
+    default = 50000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames9Price,
+}
+
+option ZM_Autoshop.vehicleScriptNames10
+{
+    type = string,
+    default = "",
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames10,
+}
+
+option ZM_Autoshop.vehicleScriptNames10Price
+{
+    type = integer,
+    min = 0,
+    max = 1000000,
+    default = 50000,
+    page = ZMAUTOSHOP,
+    translation = vehicleScriptNames10Price,
 }
