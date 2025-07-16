@@ -102,10 +102,10 @@ function JessicaSupplyRun.endPointCheck(player)
 
     -- Define the end point area
     local endPointArea = {
-        x1 = 12925,
-        y1 = 11143,
-        x2 = 12925 + 5,
-        y2 = 11143 + 6,
+        x1 = 3101,
+        y1 = 11341,
+        x2 = 3110,
+        y2 = 11353,
     }
 
     -- Get cell
