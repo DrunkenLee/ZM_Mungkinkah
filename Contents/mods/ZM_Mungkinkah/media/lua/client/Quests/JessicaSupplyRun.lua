@@ -4,12 +4,22 @@ function JessicaSupplyRun.checkAndSpawnAmbulance(player)
     -- Safety check
     if not player then return nil end
 
+    local isSupplyRunAvailable = ZMServerwideFlagHandler.consoleGetFlag("supplyRunAvailableFlag") or 0
+    local supplyMissionTakenBy = ""
+    print("Checking supply run availability: " .. isSupplyRunAvailable)
+    if isSupplyRunAvailable == 0 then
+        supplyMissionTakenBy = ZMServerwideFlagHandler.getFlagString("supplyRunTakenBy")
+        player:Say("Jessica's supply run is not available right now. It is already taken by " .. supplyMissionTakenBy)
+        return nil
+    end
+
+
     -- Define area to check
     local areaToCheck = {
-        x1 = 12926,
-        y1 = 11117,
-        x2 = 12926 + 5,
-        y2 = 11117 + 6,
+        x1 = 11223,
+        y1 = 8212,
+        x2 = 11227,
+        y2 = 8215,
     }
 
     -- Get cell
@@ -241,6 +251,9 @@ local function onServerCommand(module, command, args)
                     keyItem:setName("Ambulance Key")
                 end
             end
+            ZMServerwideFlagHandler.consoleSetFlag("supplyRunAvailableFlag", 0)
+            ZMServerwideFlagHandler.consoleSetFlag("supplyRunCompleted", 0)
+            ZMServerwideFlagHandler.consoleSetFlag("supplyRunTakenBy", player:getUsername())
         end
     end
 
@@ -263,9 +276,12 @@ local function onServerCommand(module, command, args)
                                 vehicle:removeFromWorld()
                                 vehicle:removeFromSquare()
 
-                                break -- VERY IMPORTANT: stop after removing the correct vehicle!
+                                break
                             end
                         end
+                        ZMServerwideFlagHandler.consoleSetFlag("supplyRunAvailableFlag", 1)
+                        ZMServerwideFlagHandler.consoleSetFlag("supplyRunCompleted", 1)
+                        ZMServerwideFlagHandler.consoleSetFlag("supplyRunCompletedBy", player:getUsername())
                     end
                 end
             end
@@ -283,24 +299,6 @@ end
 
 Events.OnServerCommand.Add(onServerCommand)
 
-local function EveryOneMinute()
-    local player = getSpecificPlayer(0)
-    if player and not player:isDead() then
-        -- Check if player has the jessica_quest_start flag
-        if PlayerFlagHandler.getFlag("jessica_quest_start") then
-
-            if ambulance then
-                -- print("[JessicaSupplyRun] Player found the ambulance!")
-            end
-        else
-            -- Other logic
-        end
-    end
-end
-
-Events.EveryOneMinute.Add(EveryOneMinute)
-
-print("Jessica's Supply Run initialized")
 
 -- Timed action for filling ambulance supplies
 ISFillAmbulanceSuppliesAction = ISBaseTimedAction:derive("ISFillAmbulanceSuppliesAction")
@@ -329,7 +327,7 @@ function ISFillAmbulanceSuppliesAction:start()
     self.character:Say("I'm gathering medical supplies...")
 
     -- Set up animation
-    self:setActionAnim("MoveItemsInArea")
+    self:setActionAnim("Craft")
     self:setOverrideHandModels(nil, nil)
 
     -- Initial sound time

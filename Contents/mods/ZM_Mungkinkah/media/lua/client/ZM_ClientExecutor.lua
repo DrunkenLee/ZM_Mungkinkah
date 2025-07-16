@@ -61,6 +61,96 @@ local RemoteFunctions = {
         end
     end,
 
+    sethourssurv = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] then
+            print("Error: No hours value provided.");
+            return;
+        end
+
+        local hours = tonumber(args[1]);
+        if not hours then
+            print("Error: Invalid hours value provided.");
+            return;
+        end
+
+        if player then
+            player:setHoursSurvived(hours);
+            player:Say("Hours survived set to: " .. hours);
+        end
+    end,
+
+    setzombiekills = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] then
+            print("Error: No zombie kills value provided.");
+            return;
+        end
+
+        local kills = tonumber(args[1]);
+        if not kills then
+            print("Error: Invalid zombie kills value provided.");
+            return;
+        end
+
+        if player then
+            player:setZombieKills(kills);
+            player:Say("Zombie kills set to: " .. kills);
+        end
+    end,
+
+    debugapplyenchant = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] or not args[3] or not args[4] then
+            print("Error: Missing parameters. Usage: debugapplyenchant <minDMG> <maxDMG> <enchantment> <name>");
+            return;
+        end
+
+        local minDMG = tonumber(args[1]);
+        local maxDMG = tonumber(args[2]);
+        local enchantment = tonumber(args[3]);
+        local name = args[4];
+
+        if not minDMG or not maxDMG or not enchantment then
+            print("Error: Invalid numeric values provided for minDMG, maxDMG, or enchantment.");
+            return;
+        end
+
+        if player then
+            if _G.DebugApplyEnchantment then
+                _G.DebugApplyEnchantment(minDMG, maxDMG, enchantment, name);
+                player:Say("Applied enchantment: " .. enchantment .. " to weapon for " .. name);
+            else
+                print("Error: DebugApplyEnchantment function not found in global scope");
+            end
+        end
+    end,
+
+    setserverwideflag = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] then
+            print("Error: Missing parameters. Usage: setserverwideflag <flagName> <value>");
+            return;
+        end
+
+        local flagName = args[1];
+        local flagValue = tonumber(args[2]);
+
+        if not flagValue then
+            print("Error: Invalid flag value provided. Must be a number.");
+            return;
+        end
+
+        if player then
+            if _G.ZMServerwideFlagHandler and _G.ZMServerwideFlagHandler.consoleSetFlag then
+                _G.ZMServerwideFlagHandler.consoleSetFlag(flagName, flagValue);
+                player:Say("Set serverwide flag '" .. flagName .. "' to: " .. flagValue);
+            else
+                print("Error: ZMServerwideFlagHandler.consoleSetFlag function not found in global scope");
+            end
+        end
+    end,
+
     -- Add more functions as needed
 }
 

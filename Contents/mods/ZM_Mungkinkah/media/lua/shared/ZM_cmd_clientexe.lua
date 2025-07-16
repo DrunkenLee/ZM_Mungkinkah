@@ -49,14 +49,15 @@ local function onServerCommand(author, args)
 end
 
 -- Register the command here.
-LuaCommands.register(CMD_NAME, function(author, command, args)
-    if isClient() then
-        return nil
-    elseif isServer() then
-        return onServerCommand(author, args)
-    end
-    return onSinglePlayerCommand(args);
-end);
-
+if LuaCommands then
+    LuaCommands.register(CMD_NAME, function(author, command, args)
+        if isClient() then
+            return nil
+        elseif isServer() then
+            return onServerCommand(author, args)
+        end
+        return onSinglePlayerCommand(args);
+    end)
+end
 -- Print to the console to see if this file is valid and executed.
 print('Registered LuaCommand: ' .. CMD_NAME);
