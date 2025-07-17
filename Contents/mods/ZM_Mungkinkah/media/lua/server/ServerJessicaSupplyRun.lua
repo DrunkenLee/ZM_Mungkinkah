@@ -75,40 +75,13 @@ local function onClientCommand(module, command, player, args)
                     -- Find the trunk container and add medical supplies
                     local trunkPart = ambulance:getPartById("TruckBed")
                     if trunkPart and trunkPart:getItemContainer() then
-                        local trunkContainer = trunkPart:getItemContainer()
 
-                        -- Define the items to add with their quantities
-                        -- local suppliesList = {
-                        --     {item = "Base.AlcoholBandage", count = 20},
-                        --     {item = "Base.Bandaid", count = 20},
-                        --     {item = "Base.Disinfectant", count = 20},
-                        --     {item = "Base.SutureNeedle", count = 10},
-                        --     {item = "Base.SutureNeedleHolder", count = 10},
-                        --     {item = "Base.Pills", count = 50}
-                        -- }
-
-                        -- Add each item to the trunk
-                        -- for _, supply in ipairs(suppliesList) do
-                        --     for i = 1, supply.count do
-                        --         local item = InventoryItemFactory.CreateItem(supply.item)
-                        --         if item then
-                        --             -- Rename the item with Jessica's prefix
-                        --             local baseName = item:getName()
-                        --             item:setName("Jessicas_" .. baseName)
-
-                        --             -- Add to trunk
-                        --             trunkContainer:AddItem(item)
-                        --         end
-                        --     end
-                        -- end
-
-                        print("Added Jessica's medical supplies to ambulance trunk")
                     else
                         print("Could not find trunk container for ambulance")
                     end
 
                     print("Server spawned ambulance successfully with ID: " .. vehicleID)
-
+                    print("[JessicaSupplyRunStarted] Ambulance spawned at: " .. args.x .. ", " .. args.y .. " by player: " .. player:getUsername())
                     -- Notify the client
                     sendServerCommand(player, "JessicaSupplyRun", "AmbulanceSpawned", {
                         success = true,
@@ -152,6 +125,7 @@ local function onClientCommand(module, command, player, args)
 
             -- Try multiple removal methods for reliability
             print("Removing ambulance with ID: " .. args.vehicleID)
+            print("[JessicaSupplyRunCompleted] Removing vehicle at position: " .. vehicleX .. ", " .. vehicleY .. ", " .. vehicleZ)
             vehicleToRemove:setAlpha(0.0) -- Make invisible first
             vehicleToRemove:removeFromWorld() -- Standard removal
             vehicleToRemove:removeFromSquare() -- Additional removal method

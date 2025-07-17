@@ -236,6 +236,26 @@ function JessicaSupplyRun.endPointCheck(player)
     return true
 end
 
+function JessicaSupplyRun.takePenaltyPoints(player)
+    -- Safety check
+    if not player then return false end
+
+    local penaltyPoints = 35000
+    local currentPoints = GlobalMethods.getPlayerPoints(player:getUsername())
+
+    if currentPoints == 0 then
+        currentPoints = GlobalMethods.getPlayerPoints(player:getUsername())
+    end
+
+
+    GlobalMethods.takePlayerPoints(player:getUsername(), penaltyPoints)
+    player:Say("I took a penalty of " .. penaltyPoints .. " points for failing Jessica's supply run.")
+    print("[JESSICA PENALTY] Penalty points taken: " .. penaltyPoints .. " for player: " .. player:getUsername())
+
+
+    return true
+end
+
 
 local function onServerCommand(module, command, args)
     if module == "JessicaSupplyRun" and command == "AmbulanceSpawned" then
@@ -282,6 +302,7 @@ local function onServerCommand(module, command, args)
                         ZMServerwideFlagHandler.consoleSetFlag("supplyRunAvailableFlag", 1)
                         ZMServerwideFlagHandler.consoleSetFlag("supplyRunCompleted", 1)
                         ZMServerwideFlagHandler.consoleSetFlag("supplyRunCompletedBy", player:getUsername())
+                        ZMServerwideFlagHandler.consoleSetFlag("supplyRunTakenBy", "")
                     end
                 end
             end
