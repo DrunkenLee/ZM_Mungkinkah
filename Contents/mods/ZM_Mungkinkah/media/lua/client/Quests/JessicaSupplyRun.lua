@@ -96,7 +96,7 @@ function JessicaSupplyRun.fillSuppliesToAmbulance(player, part, flag)
     return true
 end
 
-function JessicaSupplyRun.endPointCheck(player)
+function JessicaSupplyRun.endPointCheck(player, flag)
     -- Safety check
     if not player then return false end
 
@@ -232,7 +232,7 @@ function JessicaSupplyRun.endPointCheck(player)
     if PlayerFlagHandler and PlayerFlagHandler.setFlag then
         PlayerFlagHandler.setFlag("jessica_quest_complete", true)
     end
-
+    CharacterManager.instance:addFlag(flag)
     return true
 end
 
