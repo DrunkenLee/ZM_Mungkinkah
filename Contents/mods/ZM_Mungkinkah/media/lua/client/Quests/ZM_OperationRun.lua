@@ -1,31 +1,15 @@
-JessicaSupplyRun = {}
+ZM_OperationRun = {}
 
-function JessicaSupplyRun.checkAndSpawnAmbulance(player)
+function ZM_OperationRun.checkAndSpawnAmbulance(player)
     -- Safety check
     if not player then return nil end
 
     local isSupplyRunAvailable = 0
 
-    local playerAvailablePoints = GlobalMethods.getPlayerPoints(player:getUsername())
-
-    if playerAvailablePoints == 0 then
-        playerAvailablePoints = GlobalMethods.getPlayerPoints(player:getUsername())
-    end
-
-    if playerAvailablePoints < 35000 then
-        player:Say("You need at least 35,000 points to start Jessica's supply run.")
-        print("Player does not have enough points for Jessica's supply run.")
-        return nil
-    end
-
     ZMServerwideFlagHandler.getFlagBoolDirect("supplyRunAvailableFlag", function(result)
         if result then
             isSupplyRunAvailable = 1
         end
-
-        GlobalMethods.takePlayerPoints(player:getUsername(), 35000)
-        player:Say("You have deposited 35,000 points to start Jessica's supply run.")
-
         local supplyMissionTakenBy = ""
         player:Say("Checking if Jessica's supply run is available...")
         if isSupplyRunAvailable == 0 or isSupplyRunAvailable == false then
@@ -96,35 +80,19 @@ function JessicaSupplyRun.checkAndSpawnAmbulance(player)
     end)
 end
 
-function JessicaSupplyRun.fillSuppliesToAmbulance(player, part, flag)
+function ZM_OperationRun.takeSupplies(player, part, flag)
     -- Safety check
     if not player then return false end
 
-    -- No need to check for ambulance anymore
 
     -- Define the supplies to add (using REAL item IDs)
     local supplies = {
-        { itemID = "Base.Bandaid", name = "Jessicas_Adhesive Bandages", count = 20, part = 1 },
-        { itemID = "Base.RF_762x39box", name = "Jessicas_762x39box", count = 3, part = 1 },
-        { itemID = "Base.RF_762x51box", name = "Jessicas_762x51box", count = 3, part = 1 },
-        { itemID = "Base.RF_762x54box", name = "Jessicas_762x54box", count = 3, part = 1 },
-        { itemID = "Base.RF_792x57box", name = "Jessicas_792x57box", count = 3, part = 1 },
-        { itemID = "Base.RF_9x18box", name = "Jessicas_9x18box", count = 3, part = 1 },
-        { itemID = "Base.AlcoholBandage", name = "Jessicas_Sterilized Bandage", count = 20, part = 1 },
-        { itemID = "Base.Disinfectant", name = "Jessicas_Bottle of Disinfectant", count = 20, part = 2 },
-        { itemID = "Base.RF_762x39box", name = "Jessicas_762x39box", count = 10, part = 2 },
-        { itemID = "Base.RF_762x51box", name = "Jessicas_762x51box", count = 10, part = 2 },
-        { itemID = "Base.RF_762x54box", name = "Jessicas_762x54box", count = 10, part = 2 },
-        { itemID = "Base.RF_792x57box", name = "Jessicas_792x57box", count = 10, part = 2 },
-        { itemID = "Base.RF_9x18box", name = "Jessicas_9x18box", count = 3, part = 2 },
-        { itemID = "Base.SutureNeedle", name = "Jessicas_Suture Needle", count = 10, part = 2 },
-        { itemID = "Base.SutureNeedleHolder", name = "Jessicas_Suture Needle Holder", count = 10, part = 3 },
-        { itemID = "Base.RF_762x39box", name = "Jessicas_762x39box", count = 10, part = 3 },
-        { itemID = "Base.RF_762x51box", name = "Jessicas_762x51box", count = 10, part = 3 },
-        { itemID = "Base.RF_762x54box", name = "Jessicas_762x54box", count = 10, part = 3 },
-        { itemID = "Base.RF_792x57box", name = "Jessicas_792x57box", count = 10, part = 3 },
-        { itemID = "Base.RF_9x18box", name = "Jessicas_9x18box", count = 10, part = 3 },
-        { itemID = "Base.Pills", name = "Jessicas_Painkillers", count = 50, part = 3 }
+        { itemID = "Base.Bandaid", name = "OperationSupply_Adhesive Bandages", count = 20, part = 1 },
+        { itemID = "Base.AlcoholBandage", name = "OperationSupply_Sterilized Bandage", count = 20, part = 1 },
+        { itemID = "Base.Disinfectant", name = "OperationSupply_Bottle of Disinfectant", count = 20, part = 2 },
+        { itemID = "Base.SutureNeedle", name = "OperationSupply_Suture Needle", count = 10, part = 2 },
+        { itemID = "Base.SutureNeedleHolder", name = "OperationSupply_Suture Needle Holder", count = 10, part = 3 },
+        { itemID = "Base.Pills", name = "OperationSupply_Painkillers", count = 50, part = 3 }
     }
 
     -- Start the timed action - 30 seconds
@@ -134,7 +102,7 @@ function JessicaSupplyRun.fillSuppliesToAmbulance(player, part, flag)
     return true
 end
 
-function JessicaSupplyRun.endPointCheck(player)
+function ZM_OperationRun.endPointCheck(player)
     -- Safety check
     if not player then return false end
 
@@ -274,7 +242,7 @@ function JessicaSupplyRun.endPointCheck(player)
     return true
 end
 
-function JessicaSupplyRun.takePenaltyPoints(player)
+function ZM_OperationRun.takePenaltyPoints(player)
     -- Safety check
     if not player then return false end
 
@@ -296,7 +264,7 @@ end
 
 
 local function onServerCommand(module, command, args)
-    if module == "JessicaSupplyRun" and command == "AmbulanceSpawned" then
+    if module == "ZM_OperationRun" and command == "SupplyTruckSpawned" then
         local player = getSpecificPlayer(0)
         if player then
             player:Say("Ambulance has arrived!")
@@ -315,7 +283,7 @@ local function onServerCommand(module, command, args)
         end
     end
 
-    if module == "JessicaSupplyRun" and command == "AmbulanceRemoved" then
+    if module == "ZM_OperationRun" and command == "SupplyTruckSpawned" then
         local player = getSpecificPlayer(0)
         if player and args.success then
             player:Say(args.message)
@@ -357,7 +325,6 @@ local function onServerCommand(module, command, args)
 end
 
 Events.OnServerCommand.Add(onServerCommand)
-
 
 -- Timed action for filling ambulance supplies
 ISFillAmbulanceSuppliesAction = ISBaseTimedAction:derive("ISFillAmbulanceSuppliesAction")

@@ -31,7 +31,7 @@ local function onClientCommand(module, command, player, args)
             end
 
             -- Spawn the ambulance using addVehicleDebug (important!)
-            local ambulance = addVehicleDebug("Base.VanAmbulance", IsoDirections.S, nil, square)
+            local ambulance = addVehicleDebug("Base.90fordF350ambulanceADMIN", IsoDirections.S, nil, square)
 
             if ambulance then
                 -- Verify vehicle was truly created
@@ -62,13 +62,13 @@ local function onClientCommand(module, command, player, args)
                     -- Make sure engine is in good condition
                     local enginePart = ambulance:getPartById("Engine")
                     if enginePart then
-                        enginePart:setCondition(100)
+                        enginePart:setCondition(30)
                     end
 
                     -- Fill up gas tank
                     local gasTank = ambulance:getPartById("GasTank")
                     if gasTank then
-                        gasTank:setCondition(100)
+                        gasTank:setCondition(30)
                         -- ambulance:setContainerContentAmount(gasTank:getContainerContentType(), 100)
                     end
 
