@@ -10,7 +10,10 @@ local function onClientCommand(module, command, player, args)
       print("Error: No vehicle ID provided for removal")
       sendServerCommand(player, "ZM_Autoshop", "VehicleRemoved", {
         success = false,
-        message = "No vehicle ID provided"
+        message = "No vehicle ID provided",
+        finalPoints = args.finalPoints,
+        basePrice = args.basePrice,
+        condition = args.condition,
       })
       return
     end

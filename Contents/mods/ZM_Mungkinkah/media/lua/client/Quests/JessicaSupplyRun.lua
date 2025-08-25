@@ -205,8 +205,8 @@ function JessicaSupplyRun.endPointCheck(player, flag)
     local missingSupplies = {}
     local allSuppliesPresent = true
 
-    -- Check trunk for supplies
-    local trunkPart = ambulance:getPartById("TruckBed")
+    -- Check Strecher for supplies
+    local trunkPart = ambulance:getPartById("Strecher")
     if trunkPart and trunkPart:getItemContainer() then
         local trunkItems = trunkPart:getItemContainer():getItems()
         local supplyCounts = {}
@@ -231,16 +231,48 @@ function JessicaSupplyRun.endPointCheck(player, flag)
             end
         end
     else
-        print("Cannot access ambulance trunk")
+        print("Cannot access ambulance Stretcher")
         return false
     end
 
     if not allSuppliesPresent then
-        print("Missing some required supplies:")
-        player:Say("Some medical supplies are missing. Please check the ambulance trunk.")
-        for itemName, missingCount in pairs(missingSupplies) do
-            print("  " .. itemName .. ": missing " .. missingCount)
+        -- Check on player inventory for supplies
+        local playerInventory = player:getInventory():getItems()
+        local playerSupplyCounts = {}
+
+        -- Count supplies in player inventory
+        for i = 0, playerInventory:size()-1 do
+            local item = playerInventory:get(i)
+            local itemName = item:getName()
+
+            -- Count items with Jessica's prefix
+            if requiredSupplies[itemName] then
+                playerSupplyCounts[itemName] = (playerSupplyCounts[itemName] or 0) + 1
+            end
         end
+
+        -- Check if player has the missing supplies
+        local stillMissingSupplies = {}
+        for itemName, missingCount in pairs(missingSupplies) do
+            local playerHas = playerSupplyCounts[itemName] or 0
+            local stillMissing = missingCount - playerHas
+            if stillMissing > 0 then
+                stillMissingSupplies[itemName] = stillMissing
+            end
+        end
+
+        -- If player has some/all missing supplies, inform them
+        if next(stillMissingSupplies) then
+            print("Missing some required supplies even after checking player inventory:")
+            player:Say("Some medical supplies are still missing. Check both the ambulance and your inventory.")
+            for itemName, missingCount in pairs(stillMissingSupplies) do
+                print("  " .. itemName .. ": still missing " .. missingCount)
+            end
+        else
+            player:Say("You have the missing supplies in your inventory. Please transfer them to the ambulance.")
+            print("Player has all missing supplies in inventory")
+        end
+
         return false
     end
 

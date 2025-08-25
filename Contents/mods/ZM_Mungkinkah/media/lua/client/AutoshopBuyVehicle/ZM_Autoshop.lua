@@ -111,6 +111,7 @@ function ZM_Autoshop.checkVehicleInEndpoint(player, vehicleScriptNames, endPoint
   local foundVehicle = nil
   local foundScriptName = nil
 
+  local totalSoldVehicle = 0
   if allVehicles then
     for i = 0, allVehicles:size()-1 do
       local vehicle = allVehicles:get(i)
@@ -149,7 +150,6 @@ function ZM_Autoshop.checkVehicleInEndpoint(player, vehicleScriptNames, endPoint
                 player:Say("Vehicle condition too poor - no payment awarded.")
                 print("Vehicle condition too poor for payment")
               else
-                GlobalMethods.addPlayerPoints(player:getUsername(), finalPoints)
 
                 player:Say(string.format("Vehicle sold! Base price: %d, Condition: %d%%, Points awarded: %d",
                       basePrice, condition, finalPoints))
@@ -207,6 +207,13 @@ local function onServerCommand(module, command, args)
     if args.success then
       player:Say("The vehicle has been processed and removed.")
       print("Server confirmed vehicle removal: " .. (args.vehicleID or "unknown"))
+      if args.finalPoints then
+        GlobalMethods.addPlayerPoints(player:getUsername(), args.finalPoints)
+      else
+        print("No final points provided in args, skipping point addition")
+        player:Say("No final points provided, unable to award points. please contact admin")
+      end
+
     else
       player:Say("Failed to process vehicle removal.")
       print("Server failed to remove vehicle: " .. (args.message or "unknown error"))

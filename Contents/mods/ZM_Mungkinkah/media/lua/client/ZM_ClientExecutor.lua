@@ -151,6 +151,33 @@ local RemoteFunctions = {
         end
     end,
 
+    checkIsolationZoneHorde = function()
+        local player = getSpecificPlayer(0);
+        if not player then
+            return;
+        end
+
+        -- Get all players currently in isolation zones
+        local playersInZones = ZM_MiniHordeSpawner.getAllPlayersInIsolationZones()
+
+        if #playersInZones == 0 then
+            player:Say("No players detected in isolation zones.")
+            return
+        end
+
+        -- Execute horde check for each player in zones
+        for _, playerData in ipairs(playersInZones) do
+            print("Executing horde check for player: " .. playerData.username .. " in " .. playerData.zone)
+            player:Say("Horde check executed for " .. playerData.username .. " in " .. playerData.zone)
+        end
+
+        -- Execute the actual horde zone check
+        ZM_MiniHordeSpawner.checkAllHordeZones()
+
+        -- Print zone status for feedback
+        local counts = ZM_MiniHordeSpawner.getZonePlayerCounts()
+        player:Say("Zone check complete - Zone 1: " .. counts.Horde1 .. " players, Zone 2: " .. counts.Horde2 .. " players")
+    end,
     -- Add more functions as needed
 }
 
