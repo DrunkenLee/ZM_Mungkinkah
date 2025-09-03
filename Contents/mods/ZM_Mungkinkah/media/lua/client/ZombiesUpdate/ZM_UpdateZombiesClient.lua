@@ -156,6 +156,7 @@ local function ZM_UpdateOnHitZombie(zombie, attacker, bodyPart, weapon)
         local avoidDmgRoll = ZombRand(0, 100)
         if avoidDmgRoll < 95 then
           zombie:setAvoidDamage(true)
+          -- zombie:setNoDamage(true, 0)
           zombie:setVariable("hitreaction", "TankZed_HitReact")
         end
     end
@@ -168,7 +169,7 @@ local function ZM_OnWeaponHitCharacter(attacker, target, weapon, damage)
     end
 end
 
-Events.OnWeaponHitCharacter.Add(ZM_OnWeaponHitCharacter)
+-- Events.OnWeaponHitCharacter.Add(ZM_OnWeaponHitCharacter) -- disabled due to contra with new projectile
 
 -- Events.OnHitZombie.Add(ZM_UpdateOnHitZombie)
 

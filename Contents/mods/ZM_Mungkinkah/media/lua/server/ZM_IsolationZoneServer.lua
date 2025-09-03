@@ -1,0 +1,1 @@
+ZM_IsolationZoneServer = ZM_IsolationZoneServer or {}

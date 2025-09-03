@@ -4,6 +4,9 @@ ZM_Ticket.availableTypes = {
     "mechanical_boost",
     "car_repair"
 }
+local ETWCombinedTraitChecks = require "ETWCombinedTraitChecks";
+local ETWCommonLogicChecks = require "ETWCommonLogicChecks";
+local ETWCommonFunctions = require "ETWCommonFunctions";
 
 ZM_Ticket.UseMechanicalBoostTicket = function(playerObj, itemID)
 
@@ -217,7 +220,8 @@ ZM_Ticket.useTicket = function(playerObj, ticketID, ticketType)  -- Changed para
 
     if ticketType == "mechanical_boost" then
         -- Logic here
-        PlayerTierHandler.giveBookXPBoost(player, "Mechanics")
+        ETWCommonFunctions.applyXPBoost(player, Perks.Mechanics, 10);
+        -- PlayerTierHandler.giveBookXPBoost(player, "Mechanics")
         getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
 
     elseif ticketType == "car_repair" then
@@ -233,32 +237,38 @@ ZM_Ticket.useTicket = function(playerObj, ticketID, ticketType)  -- Changed para
 
     elseif ticketType == "tailoring_boost" then
         -- Logic here
-        PlayerTierHandler.giveBookXPBoost(player, "Tailoring")
+        ETWCommonFunctions.applyXPBoost(player, Perks.Tailoring, 10);
+        -- PlayerTierHandler.giveBookXPBoost(player, "Tailoring")
         getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
 
     elseif ticketType == "farming_boost" then
         -- Logic here
-        PlayerTierHandler.giveBookXPBoost(player, "Farming")
+        ETWCommonFunctions.applyXPBoost(player, Perks.Farming, 10);
+        -- PlayerTierHandler.giveBookXPBoost(player, "Farming")
         getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
 
     elseif ticketType == "cooking_boost" then
         -- Logic here
-        PlayerTierHandler.giveBookXPBoost(player, "Cooking")
+        ETWCommonFunctions.applyXPBoost(player, Perks.Cooking, 10);
+        -- PlayerTierHandler.giveBookXPBoost(player, "Cooking")
         getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
 
     elseif ticketType == "metal_welding_boost" then
         -- Logic here
-        PlayerTierHandler.giveBookXPBoost(player, "MetalWelding")
+        ETWCommonFunctions.applyXPBoost(player, Perks.MetalWelding, 10);
+        -- PlayerTierHandler.giveBookXPBoost(player, "MetalWelding")
         getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
 
     elseif ticketType == "carpentry_boost" then
         -- Logic here
-        PlayerTierHandler.giveBookXPBoost(player, "Carpentry")
+        ETWCommonFunctions.applyXPBoost(player, Perks.Carpentry, 10);
+        -- PlayerTierHandler.giveBookXPBoost(player, "Carpentry")
         getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
 
     elseif ticketType == "electronics_boost" then
         -- Logic here
-        PlayerTierHandler.giveBookXPBoost(player, "Electronics")
+        ETWCommonFunctions.applyXPBoost(player, Perks.Electronics, 10);
+        -- PlayerTierHandler.giveBookXPBoost(player, "Electronics")
         getSoundManager():PlaySound("rganvilsuccess", false, 1.0)
 
     end
