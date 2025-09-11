@@ -6,12 +6,12 @@ local cachedWeaponData = {}
 -- Function to request user weapon data from the server
 function ZM_GetWeaponData.RequestUserWeaponData(username, callback)
     if not username or username == "" then
-        print("[ZM_GetWeaponData] ERROR: No username provided")
+        --print("[ZM_GetWeaponData] ERROR: No username provided")
         if callback then callback(nil) end
         return
     end
 
-    print("[ZM_GetWeaponData] Requesting weapon data for: " .. username)
+    --print("[ZM_GetWeaponData] Requesting weapon data for: " .. username)
 
     -- Set up a callback to handle the response
     ZM_GetWeaponData.pendingCallback = callback
@@ -29,7 +29,7 @@ local function onServerCommand(module, command, args)
         local username = args.username
         local weapons = args.weapons
 
-        print("[ZM_GetWeaponData] Received " .. #weapons .. " weapons for: " .. username)
+        --print("[ZM_GetWeaponData] Received " .. #weapons .. " weapons for: " .. username)
 
         -- Format the data for easier lookup
         local formattedData = {}
@@ -61,7 +61,7 @@ Events.OnServerCommand.Add(onServerCommand)
 -- Function to get a weapon by its save name (uses cached data or makes a request)
 function ZM_GetWeaponData.GetWeaponBySaveName(username, saveName, callback)
     if not username or not saveName then
-        print("[ZM_GetWeaponData] ERROR: Missing username or saveName")
+        --print("[ZM_GetWeaponData] ERROR: Missing username or saveName")
         if callback then callback(nil) end
         return
     end

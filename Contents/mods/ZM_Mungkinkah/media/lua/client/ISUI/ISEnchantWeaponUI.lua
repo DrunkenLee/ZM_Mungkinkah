@@ -314,6 +314,7 @@ function ISEnchantWeaponUI:continueEnchantment(weapon, player, weaponIDExists, s
     print(tostring(weaponIDExists) .. " ---- " .. tostring(serverEnchantLevel) .. " ---- " .. tostring(absLevel))
     if weaponIDExists and serverEnchantLevel ~= enchantLevel and serverEnchantLevel ~= 20 then
       print("DEBUG: Weapon ID exists on server, but enchantment level differs")
+      self.statusText = "Weapon enchantment data mismatch from server! Please contact admin."
       return
     end
 
@@ -544,8 +545,8 @@ local function handleSyncAcknowledgement(module, command, args)
 
         -- Otherwise, revert to server values
         print("[ZM_Mungkah] Server rejected changes, reverting to server values")
-        weapon:setMinDamage(args.minDamage)
-        weapon:setMaxDamage(args.maxDamage)
+        -- weapon:setMinDamage(args.minDamage)
+        -- weapon:setMaxDamage(args.maxDamage)
 
         -- Update saved values to match server
         if not weapon:getModData().savedDamageValues then

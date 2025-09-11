@@ -1,0 +1,157 @@
+module ZM_Mungkinkah
+{
+    imports
+    {
+        Base
+    }
+
+    item ZM_EnchanceTicket1
+    {
+        DisplayName = Enchantment Ticket I,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier I enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket2
+    {
+        DisplayName = Enchantment Ticket II,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier II enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket3
+    {
+        DisplayName = Enchantment Ticket III,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier III enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket4
+    {
+        DisplayName = Enchantment Ticket IV,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier IV enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket5
+    {
+        DisplayName = Enchantment Ticket V,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier V enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket6
+    {
+        DisplayName = Enchantment Ticket VI,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier VI enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket7
+    {
+        DisplayName = Enchantment Ticket VII,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier VII enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket8
+    {
+        DisplayName = Enchantment Ticket VIII,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier VIII enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket9
+    {
+        DisplayName = Enchantment Ticket IX,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier IX enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+
+    item ZM_EnchanceTicket10
+    {
+        DisplayName = Enchantment Ticket X,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = SheetPaper,
+        DisplayCategory = Junk,
+        Tooltip = A magical ticket that can enhance your weapon with tier X enchantment.,
+        WorldStaticModel = SheetPaper_Ground,
+
+        /* Add context menu option */
+        CustomContextMenu = Use Ticket To Weapon,
+        OnCustomContextMenu = ZM_EnchanceTickets.UseTicketOnWeapon,
+    }
+}

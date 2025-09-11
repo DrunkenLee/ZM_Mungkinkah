@@ -48,6 +48,16 @@ local function applyDamageBoost(weapon)
         -- Only apply if needed
         if currentMin ~= targetMin or currentMax ~= targetMax then
             -- Apply the boost
+            local weaponModData = weapon:getModData()
+            local enchantMinDamage = 0
+            local enchantMaxDamage = 0
+
+            if weaponModData and weaponModData.savedDamageValues then
+                enchantMinDamage = weaponModData.savedDamageValues.minDamage
+                enchantMaxDamage = weaponModData.savedDamageValues.maxDamage
+            end
+            targetMin = targetMin + enchantMinDamage
+            targetMax = targetMax + enchantMaxDamage
             weapon:setMinDamage(targetMin)
             weapon:setMaxDamage(targetMax)
 

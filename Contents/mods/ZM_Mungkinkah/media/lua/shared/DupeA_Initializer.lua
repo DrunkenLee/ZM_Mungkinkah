@@ -10,7 +10,7 @@ function DupeA.SearchItemsInContainer(container, x, y, z)
     local list = {}
 
     if DupeA.IsCorpseContainer(container) then
-        print("[DupeA] Skipping corpse container: " .. container:getType())
+        -- print("[DupeA] Skipping corpse container: " .. container:getType())
         return list
     end
 
@@ -245,7 +245,7 @@ function DupeA.DeleteItem(item, index)
         container:removeItemOnServer(item)
     end
     local removedItem = table.remove(DupeA.dupes.items, index)
-    DupeA.PrintDebug("Deleted Item: " .. item:getType())
+    -- DupeA.PrintDebug("Deleted Item: " .. item:getType())
 end
 
 function DupeA.CheckAndDeleteDupesAroundPlayer(player)
@@ -259,7 +259,7 @@ function DupeA.CheckAndDeleteDupesAroundPlayer(player)
     }
     local tittle = "AutoDupeCleanup"
     local dupes = DupeA.AnalyzeItems(coords, tittle, player)
-    print("[DupeA] Checking for dupes in 20-tile area... Found: " .. tostring(dupes.count))
+    -- print("[DupeA] Checking for dupes in 20-tile area... Found: " .. tostring(dupes.count))
     if #dupes.items > 0 then
         for i = #dupes.items, 1, -1 do
             local dupe = dupes.items[i]
@@ -267,11 +267,11 @@ function DupeA.CheckAndDeleteDupesAroundPlayer(player)
             DupeA.RequestServerDeleteDupe(dupe.id, dupe.x, dupe.y, dupe.z)
             DupeA.DeleteItem(dupe.item, i)
             -- Also delete on client if running as client
-            print("[DupeA] Deleted dupe item on client: " .. tostring(dupe.item:getType()) .. " at " .. dupe.x .. "," .. dupe.y .. "," .. dupe.z)
+            -- print("[DupeA] Deleted dupe item on client: " .. tostring(dupe.item:getType()) .. " at " .. dupe.x .. "," .. dupe.y .. "," .. dupe.z)
         end
-        print("[DupeA] All dupe delete requests sent to server.")
+        -- print("[DupeA] All dupe delete requests sent to server.")
     else
-        print("[DupeA] No dupes found in area.")
+        -- print("[DupeA] No dupes found in area.")
     end
 end
 

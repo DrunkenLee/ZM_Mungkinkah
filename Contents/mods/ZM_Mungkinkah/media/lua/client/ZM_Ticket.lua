@@ -11,19 +11,19 @@ local ETWCommonFunctions = require "ETWCommonFunctions";
 ZM_Ticket.UseMechanicalBoostTicket = function(playerObj, itemID)
 
     if not playerObj then
-        print("ERROR: Player is nil in UseMechanicalBoostTicket.")
+        --print("ERROR: Player is nil in UseMechanicalBoostTicket.")
         return
     end
 
     if not itemID then
-        print("ERROR: Item is nil in UseMechanicalBoostTicket.")
+        --print("ERROR: Item is nil in UseMechanicalBoostTicket.")
         return
     end
 
     local ticketID = "ZM_Ticket_" .. itemID .. playerObj:getUsername()
 
 
-    print("DEBUG: Starting mechanical boost ticket usage..." .. ticketID)
+    --print("DEBUG: Starting mechanical boost ticket usage..." .. ticketID)
 
     playerObj:Say("Using mechanical boost ticket...")
 
@@ -32,19 +32,19 @@ end
 
 ZM_Ticket.UseCarpentryBoostTicket = function(playerObj, itemID)
     if not playerObj then
-        print("ERROR: Player is nil in UseCarpentryBoostTicket.")
+        --print("ERROR: Player is nil in UseCarpentryBoostTicket.")
         return
     end
 
     if not itemID then
-        print("ERROR: Item is nil in UseCarpentryBoostTicket.")
+        --print("ERROR: Item is nil in UseCarpentryBoostTicket.")
         return
     end
 
     local ticketID = "ZM_Ticket_" .. itemID .. playerObj:getUsername()
 
 
-    print("DEBUG: Starting carpentry boost ticket usage..." .. ticketID)
+    --print("DEBUG: Starting carpentry boost ticket usage..." .. ticketID)
 
     playerObj:Say("Using carpentry boost ticket...")
 
@@ -53,19 +53,19 @@ end
 
 ZM_Ticket.UseElectronicsBoostTicket = function(playerObj, itemID)
     if not playerObj then
-        print("ERROR: Player is nil in UseElectronicsBoostTicket.")
+        --print("ERROR: Player is nil in UseElectronicsBoostTicket.")
         return
     end
 
     if not itemID then
-        print("ERROR: Item is nil in UseElectronicsBoostTicket.")
+        --print("ERROR: Item is nil in UseElectronicsBoostTicket.")
         return
     end
 
     local ticketID = "ZM_Ticket_" .. itemID .. playerObj:getUsername()
 
 
-    print("DEBUG: Starting electronics boost ticket usage..." .. ticketID)
+    --print("DEBUG: Starting electronics boost ticket usage..." .. ticketID)
 
     playerObj:Say("Using electronics boost ticket...")
 
@@ -74,19 +74,19 @@ end
 
 ZM_Ticket.UseMetalWeldingBoostTicket = function(playerObj, itemID)
     if not playerObj then
-        print("ERROR: Player is nil in UseMetalWeldingBoostTicket.")
+        --print("ERROR: Player is nil in UseMetalWeldingBoostTicket.")
         return
     end
 
     if not itemID then
-        print("ERROR: Item is nil in UseMetalWeldingBoostTicket.")
+        --print("ERROR: Item is nil in UseMetalWeldingBoostTicket.")
         return
     end
 
     local ticketID = "ZM_Ticket_" .. itemID .. playerObj:getUsername()
 
 
-    print("DEBUG: Starting metal welding boost ticket usage..." .. ticketID)
+    --print("DEBUG: Starting metal welding boost ticket usage..." .. ticketID)
 
     playerObj:Say("Using metal welding boost ticket...")
 
@@ -95,19 +95,19 @@ end
 
 ZM_Ticket.UseCookingBoostTicket = function(playerObj, itemID)
     if not playerObj then
-        print("ERROR: Player is nil in UseCookingBoostTicket.")
+        --print("ERROR: Player is nil in UseCookingBoostTicket.")
         return
     end
 
     if not itemID then
-        print("ERROR: Item is nil in UseCookingBoostTicket.")
+        --print("ERROR: Item is nil in UseCookingBoostTicket.")
         return
     end
 
     local ticketID = "ZM_Ticket_" .. itemID .. playerObj:getUsername()
 
 
-    print("DEBUG: Starting cooking boost ticket usage..." .. ticketID)
+    --print("DEBUG: Starting cooking boost ticket usage..." .. ticketID)
 
     playerObj:Say("Using cooking boost ticket...")
 
@@ -116,19 +116,19 @@ end
 
 ZM_Ticket.UseFarmingBoostTicket = function(playerObj, itemID)
     if not playerObj then
-        print("ERROR: Player is nil in UseFarmingBoostTicket.")
+        --print("ERROR: Player is nil in UseFarmingBoostTicket.")
         return
     end
 
     if not itemID then
-        print("ERROR: Item is nil in UseFarmingBoostTicket.")
+        --print("ERROR: Item is nil in UseFarmingBoostTicket.")
         return
     end
 
     local ticketID = "ZM_Ticket_" .. itemID .. playerObj:getUsername()
 
 
-    print("DEBUG: Starting farming boost ticket usage..." .. ticketID)
+    --print("DEBUG: Starting farming boost ticket usage..." .. ticketID)
 
     playerObj:Say("Using farming boost ticket...")
 
@@ -137,19 +137,19 @@ end
 
 ZM_Ticket.UseTailoringBoostTicket = function(playerObj, itemID)
     if not playerObj then
-        print("ERROR: Player is nil in UseTailoringBoostTicket.")
+        --print("ERROR: Player is nil in UseTailoringBoostTicket.")
         return
     end
 
     if not itemID then
-        print("ERROR: Item is nil in UseTailoringBoostTicket.")
+        --print("ERROR: Item is nil in UseTailoringBoostTicket.")
         return
     end
 
     local ticketID = "ZM_Ticket_" .. itemID .. playerObj:getUsername()
 
 
-    print("DEBUG: Starting tailoring boost ticket usage..." .. ticketID)
+    --print("DEBUG: Starting tailoring boost ticket usage..." .. ticketID)
 
     playerObj:Say("Using tailoring boost ticket...")
 
@@ -158,19 +158,19 @@ end
 
 ZM_Ticket.UseFirstAidBoostTicket = function(playerObj, itemID)
     if not playerObj then
-        print("ERROR: Player is nil in UseFirstAidBoostTicket.")
+        --print("ERROR: Player is nil in UseFirstAidBoostTicket.")
         return
     end
 
     if not itemID then
-        print("ERROR: Item is nil in UseFirstAidBoostTicket.")
+        --print("ERROR: Item is nil in UseFirstAidBoostTicket.")
         return
     end
 
     local ticketID = "ZM_Ticket_" .. itemID .. playerObj:getUsername()
 
 
-    print("DEBUG: Starting first aid boost ticket usage..." .. ticketID)
+    --print("DEBUG: Starting first aid boost ticket usage..." .. ticketID)
 
     playerObj:Say("Using first aid boost ticket...")
 
@@ -179,17 +179,17 @@ end
 
 ZM_Ticket.isTicketUsed = function(playerObj, ticketID, item, ticketType)
     if not playerObj then
-        print("ERROR: Player is nil in isTicketUsed.")
+        --print("ERROR: Player is nil in isTicketUsed.")
         return
     end
 
     if not ticketID then
-        print("ERROR: Ticket ID is nil in isTicketUsed.")
+        --print("ERROR: Ticket ID is nil in isTicketUsed.")
         return
     end
-    print("DEBUG: PRINTING PAYLOAD IN isTicketUsed")
-    print("DEBUG: Ticket ID: " .. ticketID)
-    print("DEBUG: Ticket Type: " .. (ticketType or "nil"))
+    --print("DEBUG: PRINTING PAYLOAD IN isTicketUsed")
+    --print("DEBUG: Ticket ID: " .. ticketID)
+    --print("DEBUG: Ticket Type: " .. (ticketType or "nil"))
 
     local inventory = playerObj:getInventory()
     inventory:Remove(item)
@@ -203,14 +203,14 @@ ZM_Ticket.useTicket = function(playerObj, ticketID, ticketType)  -- Changed para
     local player = playerObj
 
     if not player then
-        print("ERROR: Player is nil in useTicket.")
+        --print("ERROR: Player is nil in useTicket.")
         return
     end
 
-    print("DEBUG: Using ticket...")
-    print("DEBUG: Ticket ID: " .. ticketID)
+    --print("DEBUG: Using ticket...")
+    --print("DEBUG: Ticket ID: " .. ticketID)
     -- print("DEBUG: Item: " .. (item and item:getFullType() or "nil"))
-    print("DEBUG: Ticket Type: " .. (ticketType or "nil"))
+    --print("DEBUG: Ticket Type: " .. (ticketType or "nil"))
 
     sendClientCommand(player, "ZM_Ticket", "addusedticket", {
         ticketID = ticketID,
@@ -284,61 +284,15 @@ local function addContextToCheckTicket(playerNum, context, items)
       if instanceof(v, "InventoryItem") then
 
           local item = v
-          print("Found direct item: " .. item:getFullType())
-          print(item:getID())
+          --print("Found direct item: " .. item:getFullType())
+          --print(item:getID())
           local itemType = item:getFullType()
           local payload = {}
 
-          if itemType == "ZM_Mungkinkah.ZM_PermanentMechanicalBoostTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use Mechanical Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "mechanical_boost")
-          end
+          -- Check if the item is in the player's inventory
+          local isInPlayerInventory = playerObj:getInventory():contains(item)
 
-          if itemType == "ZM_Mungkinkah.ZM_CarRepairTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use Car Repair Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "car_repair")
-          end
-
-          if itemType == "ZM_Mungkinkah.ZM_PermanentFirstAidBoostTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use First Aid Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "firstaid_boost")
-          end
-
-          if itemType == "ZM_Mungkinkah.ZM_PermanentTailoringBoostTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use Tailoring Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "tailoring_boost")
-          end
-
-          if itemType == "ZM_Mungkinkah.ZM_PermanentFarmingBoostTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use Farming Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "farming_boost")
-          end
-
-          if itemType == "ZM_Mungkinkah.ZM_PermanentCookingBoostTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use Cooking Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "cooking_boost")
-          end
-
-          if itemType == "ZM_Mungkinkah.ZM_PermanentMetalWeldingBoostTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use Metal Welding Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "metal_welding_boost")
-          end
-
-          if itemType == "ZM_Mungkinkah.ZM_PermanentElectronicsBoostTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use Electronics Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "electronics_boost")
-          end
-
-          if itemType == "ZM_Mungkinkah.ZM_PermanentCarpentryBoostTicket" then
-              local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
-              context:addOption("Use Carpentry Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "carpentry_boost")
-          end
-
-      elseif v.items and #v.items > 0 then
-          local item = v.items[1]
-          if instanceof(item, "InventoryItem") then
-              local itemType = item:getFullType()
-
+          if isInPlayerInventory then
               if itemType == "ZM_Mungkinkah.ZM_PermanentMechanicalBoostTicket" then
                   local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
                   context:addOption("Use Mechanical Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "mechanical_boost")
@@ -383,6 +337,62 @@ local function addContextToCheckTicket(playerNum, context, items)
                   local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
                   context:addOption("Use Carpentry Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "carpentry_boost")
               end
+          end
+
+      elseif v.items and #v.items > 0 then
+          local item = v.items[1]
+          if instanceof(item, "InventoryItem") then
+              local itemType = item:getFullType()
+
+              -- Check if the item is in the player's inventory
+              local isInPlayerInventory = playerObj:getInventory():contains(item)
+
+              if isInPlayerInventory then
+                  if itemType == "ZM_Mungkinkah.ZM_PermanentMechanicalBoostTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use Mechanical Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "mechanical_boost")
+                  end
+
+                  if itemType == "ZM_Mungkinkah.ZM_CarRepairTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use Car Repair Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "car_repair")
+                  end
+
+                  if itemType == "ZM_Mungkinkah.ZM_PermanentFirstAidBoostTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use First Aid Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "firstaid_boost")
+                  end
+
+                  if itemType == "ZM_Mungkinkah.ZM_PermanentTailoringBoostTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use Tailoring Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "tailoring_boost")
+                  end
+
+                  if itemType == "ZM_Mungkinkah.ZM_PermanentFarmingBoostTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use Farming Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "farming_boost")
+                  end
+
+                  if itemType == "ZM_Mungkinkah.ZM_PermanentCookingBoostTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use Cooking Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "cooking_boost")
+                  end
+
+                  if itemType == "ZM_Mungkinkah.ZM_PermanentMetalWeldingBoostTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use Metal Welding Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "metal_welding_boost")
+                  end
+
+                  if itemType == "ZM_Mungkinkah.ZM_PermanentElectronicsBoostTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use Electronics Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "electronics_boost")
+                  end
+
+                  if itemType == "ZM_Mungkinkah.ZM_PermanentCarpentryBoostTicket" then
+                      local ticketID = "ZM_Ticket_" .. item:getID() .. playerObj:getUsername()
+                      context:addOption("Use Carpentry Boost Ticket", playerObj, ZM_Ticket.isTicketUsed, ticketID, item, "carpentry_boost")
+                  end
+              end
 
           end
 
@@ -397,7 +407,7 @@ Events.OnServerCommand.Add(function(module, command, args)
 
     local player = getSpecificPlayer(0)
     if not player then
-        print("ERROR: Cannot get player in OnServerCommand handler")
+        --print("ERROR: Cannot get player in OnServerCommand handler")
         return
     end
 
@@ -413,11 +423,11 @@ Events.OnServerCommand.Add(function(module, command, args)
         -- end
 
         if used then
-            print("DEBUG: Ticket " .. ticketID .. " has already been used"
-                  .. (username and " by " .. username or ""))
+            --print("DEBUG: Ticket " .. ticketID .. " has already been used"
+                  --.. (username and " by " .. username or ""))
             player:Say("This ticket has already been used.")
         else
-            print("DEBUG: Ticket is available for use.")
+            --print("DEBUG: Ticket is available for use.")
 
             if ticketType == "mechanical_boost" then
                 player:Say("using permanent mechanical boost ticket.")
@@ -458,7 +468,7 @@ Events.OnServerCommand.Add(function(module, command, args)
             end
         end
     elseif command == "saveusedticketsresponse" then
-        print("DEBUG: Received confirmation that ticket usage data was saved")
+        --print("DEBUG: Received confirmation that ticket usage data was saved")
         player:Say("Ticket usage data has been saved.")
     end
 

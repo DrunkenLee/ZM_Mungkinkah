@@ -53,13 +53,13 @@ ZM_ZombieUpdate.printZombiesModDataInRadius = function(radius)
   radius = radius or 10
   local player = getPlayer()
   if not player then
-    print("ZM_ZombieUpdate: no local player found")
+    --print("ZM_ZombieUpdate: no local player found")
     return
   end
 
   local px, py, pz = player:getX(), player:getY(), player:getZ()
   local found = 0
-  print(string.format("ZM_ZombieUpdate: scanning radius %d around player at (%d,%d,%d)", radius, px, py, pz))
+  --print(string.format("ZM_ZombieUpdate: scanning radius %d around player at (%d,%d,%d)", radius, px, py, pz))
 
   local cell = getCell()
   for dx = -radius, radius do
@@ -72,16 +72,16 @@ ZM_ZombieUpdate.printZombiesModDataInRadius = function(radius)
           if instanceof(obj, "IsoZombie") then
             found = found + 1
             local zx, zy, zz = obj:getX(), obj:getY(), obj:getZ()
-            print(string.format(" Zombie #%d at (%d,%d,%d):", found, zx, zy, zz))
+            --print(string.format(" Zombie #%d at (%d,%d,%d):", found, zx, zy, zz))
             -- don't print the raw table; the code below will iterate and print modData entries
             local md = obj:getModData() or {}
             local empty = true
             for k, v in pairs(md) do
               empty = false
-              print("  " .. tostring(k) .. " = " .. tostring(v))
+              --print("  " .. tostring(k) .. " = " .. tostring(v))
             end
             if empty then
-              print("  <modData empty>")
+              --print("  <modData empty>")
             end
           end
         end
@@ -89,18 +89,18 @@ ZM_ZombieUpdate.printZombiesModDataInRadius = function(radius)
     end
   end
 
-  print("ZM_ZombieUpdate: total zombies found = " .. tostring(found))
+  --print("ZM_ZombieUpdate: total zombies found = " .. tostring(found))
 end
 
 local function printTable(root, indent, visited)
   indent = indent or ""
   visited = visited or {}
   if type(root) ~= "table" then
-    print(indent .. tostring(root))
+    --print(indent .. tostring(root))
     return
   end
   if visited[root] then
-    print(indent .. "<cycle>")
+    --print(indent .. "<cycle>")
     return
   end
   visited[root] = true
@@ -115,11 +115,11 @@ local function printTable(root, indent, visited)
     local kstr = tostring(k)
     local vtype = type(v)
     if vtype == "table" then
-      print(indent .. kstr .. " = {")
+      --print(indent .. kstr .. " = {")
       printTable(v, indent .. "  ", visited)
-      print(indent .. "}")
+      --print(indent .. "}")
     else
-      print(indent .. kstr .. " = " .. tostring(v))
+      --print(indent .. kstr .. " = " .. tostring(v))
     end
   end
 
@@ -134,12 +134,12 @@ local function ZM_UpdateOnHitZombie(zombie, attacker, bodyPart, weapon)
     local weaponName = "Unknown"
 
     if weapon then
-      print("ADA KOK WEAPON NYA")
+      --print("ADA KOK WEAPON NYA")
       weaponName = weapon:getName() or "Unknown"
     end
 
     if string.find(weaponName, "Legend") or string.find(weaponName, "+10") then
-      print("Legendary weapon detected: " .. weaponName)
+      --print("Legendary weapon detected: " .. weaponName)
       usingLegendWeapon = true
     end
 
@@ -164,7 +164,7 @@ end
 
 local function ZM_OnWeaponHitCharacter(attacker, target, weapon, damage)
     if target and instanceof(target, "IsoZombie") then
-        print(weapon)
+        --print(weapon)
         ZM_UpdateOnHitZombie(target, attacker, bodyPart, weapon)
     end
 end

@@ -10,10 +10,10 @@ module ZM_Mungkinkah
         DisplayName = Mystic Orb Weapon,
         Weight = 0.1,
         Type = Normal,
-        Icon = Battery,
+        Icon = MysticOrb,
         DisplayCategory = Junk,
         Tooltip = An enigmatic orb that radiates a mystical energy. It is said to hold ancient secrets and powers.,
-        WorldStaticModel = Battery_Ground,
+        WorldStaticModel = MysticOrb,
 
         /* Add context menu option */
         CustomContextMenu = Bind it to my weapon,

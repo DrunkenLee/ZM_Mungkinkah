@@ -1,0 +1,152 @@
+module ZM_Mungkinkah
+{
+    imports
+    {
+        Base
+    }
+
+    item ZM_CarRepairTicket
+    {
+        DisplayName = Repair Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to reset the cooldown of the ZM Autosshop, allowing you to use it again immediately.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Repair Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseRepairTicket,
+    }
+
+    item ZM_PermanentMechanicalBoostTicket
+    {
+        DisplayName = Permanent Mechanical Boost Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to permanently boost the mechanical skills of the player.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Permanent Mechanical Boost Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseMechanicalBoostTicket,
+    }
+
+    item ZM_PermanentCarpentryBoostTicket
+    {
+        DisplayName = Permanent Carpentry Boost Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to permanently boost the carpentry skills of the player.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Permanent Carpentry Boost Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseCarpentryBoostTicket,
+    }
+
+    item ZM_PermanentElectronicsBoostTicket
+    {
+        DisplayName = Permanent Electronics Boost Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to permanently boost the electronics skills of the player.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Permanent Electronics Boost Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseElectronicsBoostTicket,
+    }
+
+    item ZM_PermanentMetalWeldingBoostTicket
+    {
+        DisplayName = Permanent Metal Welding Boost Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to permanently boost the metal welding skills of the player.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Permanent Metal Welding Boost Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseMetalWeldingBoostTicket,
+    }
+
+    item ZM_PermanentCookingBoostTicket
+    {
+        DisplayName = Permanent Cooking Boost Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to permanently boost the cooking skills of the player.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Permanent Cooking Boost Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseCookingBoostTicket,
+    }
+
+    item ZM_PermanentFarmingBoostTicket
+    {
+        DisplayName = Permanent Farming Boost Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to permanently boost the farming skills of the player.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Permanent Farming Boost Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseFarmingBoostTicket,
+    }
+
+    item ZM_PermanentTailoringBoostTicket
+    {
+        DisplayName = Permanent Tailoring Boost Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to permanently boost the tailoring skills of the player.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Permanent Tailoring Boost Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseTailoringBoostTicket,
+    }
+
+    item ZM_PermanentFirstAidBoostTicket
+    {
+        DisplayName = Permanent First Aid Boost Ticket,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket can be used to permanently boost the first aid skills of the player.,
+        WorldStaticModel = EmptyNotebook,
+
+        /* Add context menu option */
+        CustomContextMenu = Use ZM Permanent First Aid Boost Ticket,
+        OnCustomContextMenu = ZM_Ticket.UseFirstAidBoostTicket,
+    }
+    item ZM_PauBirthdayCoupon
+    {
+        DisplayName = Pau's Birthday Coupon,
+        Weight = 0.1,
+        Type = Normal,
+        Icon = Notebook,
+        DisplayCategory = Junk,
+        Tooltip = Ticket Need to claim a reward for Pau's Birthday Event,
+        WorldStaticModel = EmptyNotebook
+    }
+}

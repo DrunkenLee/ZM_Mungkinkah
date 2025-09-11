@@ -239,9 +239,14 @@ local function onClientCommand(module, command, player, data)
       local isBroken = data.isBroken or false
 
       if not weaponID then
+          weaponID = data.weaponID
+      end
+
+      if not weaponID then
           print("[ZM_EnchantWeaponServer] ERROR: No weapon ID provided for tracking")
           return
       end
+
 
       addEnchantedWeaponToGlobalData(weaponID, username, weaponName, enchantLevel, isBroken)
 
@@ -612,6 +617,9 @@ local function onClientCommand(module, command, player, data)
           print("[ZM_EnchantWeaponServer] Min diff: " .. math.abs(minDamage - currentMinDamage) ..
                 ", Max diff: " .. math.abs(maxDamage - currentMaxDamage) ..
                 ", Allowed: " .. maxAllowedChange)
+
+          addEnchantedWeaponToGlobalData(weaponID, username, weaponName, enchantLevel, isBroken)
+          success = true
       end
       sendServerCommand(playerObj, "EnchantWeapon", "syncAcknowledged", {
           weaponID = weaponID,

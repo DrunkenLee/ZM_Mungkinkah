@@ -66,13 +66,17 @@ local function addMysticOrbContextMenu(player, context, items)
 
         -- Check if the item is the Mystic Orb
         if item and instanceof(item, "InventoryItem") and item:getType() == "ZM_MysticOrb" then
-            -- Check if this orb is already bound (server will double-check)
-            if not item:getModData().isUsed then
-                -- Pass the player index (0) - our function will convert it to an object
-                context:addOption("Bind it to my weapon", 0, ZM_MysticOrb.BindToWeapon, item)
-            else
-                local option = context:addOption("Already Bound", nil)
-                option.notAvailable = true
+            -- Only when the orb is inside the player's inventory (incl. equipped bags)
+            local container = item:getContainer()
+            if container and container.isInCharacterInventory and container:isInCharacterInventory(playerObj) then
+                -- Check if this orb is already bound (server will double-check)
+                if not item:getModData().isUsed then
+                    -- Pass the player index (0) - our function will convert it to an object
+                    context:addOption("Bind it to my weapon", 0, ZM_MysticOrb.BindToWeapon, item)
+                else
+                    local option = context:addOption("Already Bound", nil)
+                    option.notAvailable = true
+                end
             end
         end
     end
