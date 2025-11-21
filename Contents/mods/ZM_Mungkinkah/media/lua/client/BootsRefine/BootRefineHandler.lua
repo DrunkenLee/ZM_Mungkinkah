@@ -5,9 +5,9 @@ local GlobalMethods = require "globalmethods"
 
 -- Base costs for refinement attempts
 local REFINEMENT_COSTS = {
-    boots = 1000,
-    vest = 1000,
-    bag = 2500
+    boots = 2000,
+    vest = 2000,
+    bag = 5000
 }
 
 -- =========================
@@ -329,7 +329,9 @@ local _EQUIPMENT_STATS = {
         "ScratchDefense", "BiteDefense"
     },
     vest = {
-        "Condition", "ConditionMax", "Insulation", "RunSpeedModifier", "CombatSpeedMod",
+        "Condition", "ConditionMax", "Insulation", "CombatSpeedMod",
+        -- Added RunSpeedModifier so vest speed can increase (previously only degraded)
+        "RunSpeedModifier",
         "ScratchDefense", "BiteDefense", "BulletDefense", "Thickness",
         "WindResistance", "WaterResistance"
     },
@@ -529,6 +531,7 @@ function BootRefineHandler.refineEquipmentMods(equipmentItem, opts)
         if _brh_has_setter(equipmentItem, "CombatSpeedMod") then
             table.insert(availableStats, {stat = "CombatSpeedMod", baseIncrease = 0.018})
         end
+        -- Newly added: allow RunSpeedModifier to increase on success (was previously missing)
         if _brh_has_setter(equipmentItem, "RunSpeedModifier") then
             table.insert(availableStats, {stat = "RunSpeedModifier", baseIncrease = 0.018})
         end
@@ -966,14 +969,14 @@ local function onClothingUpdated(player)
             boots = result
         end
 
-        if not boots then
-            local success2, result2 = pcall(function()
-                return player:getWornItem("Feet")
-            end)
-            if success2 then
-                boots = result2
-            end
-        end
+        -- if not boots then
+        --     local success2, result2 = pcall(function()
+        --         return player:getWornItem("Feet")
+        --     end)
+        --     if success2 then
+        --         boots = result2
+        --     end
+        -- end
     end
 
     if boots and boots.getModData then

@@ -1,0 +1,25 @@
+{
+  "name": "zomboid-auction-processor",
+  "version": "1.0.0",
+  "description": "Project Zomboid Auction Log Processor for Node.js API",
+  "main": "auction-log-processor.js",
+  "scripts": {
+    "start": "node auction-log-processor.js",
+    "dev": "nodemon auction-log-processor.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "axios": "^1.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "keywords": [
+    "project-zomboid",
+    "auction",
+    "log-processor",
+    "nodejs"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

@@ -1,5 +1,61 @@
 JessicaSupplyRun = {}
 
+-- Debug helper function to print all vehicle parts
+function JessicaSupplyRun.printAllVehicleParts(vehicle)
+    if not vehicle then
+        print("No vehicle provided to printAllVehicleParts")
+        return
+    end
+
+    print("=== VEHICLE PARTS DEBUG ===")
+    print("Vehicle Script: " .. (vehicle:getScriptName() or "Unknown"))
+    print("Vehicle ID: " .. (vehicle:getId() or "Unknown"))
+
+    -- Try common ambulance part names
+    local commonPartNames = {
+        "TrunkDoor", "Trunk", "DoorRear", "GloveBox",
+        "SeatMiddleLeft", "SeatMiddleRight", "SeatRearLeft", "SeatRearRight",
+        "Strecher", "Stretcher", "MedicalStorage", "Storage",
+        "Cargo", "Rear", "Back", "Container"
+    }
+
+    print("Checking common part names:")
+    for i, partName in ipairs(commonPartNames) do
+        local part = vehicle:getPartById(partName)
+        if part then
+            print("Part " .. i .. ": ID='" .. partName .. "' - FOUND")
+            if part:getItemContainer() then
+                local container = part:getItemContainer()
+                print("  - Has item container with " .. container:getItems():size() .. " items")
+                print("  - Container Type: " .. (container:getType() or "Unknown"))
+
+                -- List items in container
+                local items = container:getItems()
+                if items:size() > 0 then
+                    print("  - Items in container:")
+                    for j = 0, items:size()-1 do
+                        local item = items:get(j)
+                        print("    * " .. (item:getName() or "Unknown Item"))
+                    end
+                end
+            else
+                print("  - No item container")
+            end
+        else
+            print("Part " .. i .. ": ID='" .. partName .. "' - NOT FOUND")
+        end
+    end
+
+    -- Also check vehicle script for additional info
+    local script = vehicle:getScript()
+    if script then
+        print("Vehicle Script Name: " .. (script:getName() or "Unknown"))
+        print("Vehicle Script Full Name: " .. (script:getFullName() or "Unknown"))
+    end
+
+    print("=== END VEHICLE PARTS DEBUG ===")
+end
+
 function JessicaSupplyRun.checkAndSpawnAmbulance(player)
     -- Safety check
     if not player then return nil end
@@ -68,6 +124,8 @@ function JessicaSupplyRun.checkAndSpawnAmbulance(player)
                         if vehicle:getScriptName() == "Base.90fordF350ambulanceADMIN" then
                             ambulanceFound = true
                             player:Say("Ambulance is ready.")
+                            -- Debug: Print all parts when ambulance is found
+                            JessicaSupplyRun.printAllVehicleParts(vehicle)
                             return vehicle
                         end
                     end
@@ -179,6 +237,9 @@ function JessicaSupplyRun.endPointCheck(player, flag)
                     if vehicle:getScriptName() == "Base.90fordF350ambulanceADMIN" then
                         ambulanceInArea = true
                         ambulance = vehicle
+                        -- Debug: Print all parts when ambulance is found at endpoint
+                        print("Ambulance found at endpoint, printing parts...")
+                        JessicaSupplyRun.printAllVehicleParts(vehicle)
                         break
                     end
                 end
@@ -205,9 +266,70 @@ function JessicaSupplyRun.endPointCheck(player, flag)
     local missingSupplies = {}
     local allSuppliesPresent = true
 
-    -- Check Strecher for supplies
+    -- Check Strecher for supplies (original code)
     local trunkPart = ambulance:getPartById("Strecher")
+    if not trunkPart then
+        -- Try alternative part names
+        print("'Strecher' part not found, trying alternatives...")
+        local alternativeNames = {"SeatMiddleLeft", "TrunkDoor", "Cargo", "DoorRear", "GloveBox", "SeatMiddleRight", "SeatRearLeft", "SeatRearRight", "Stretcher", "MedicalStorage", "Storage", "Container", "Back"}
+        for _, altName in ipairs(alternativeNames) do
+            trunkPart = ambulance:getPartById(altName)
+            if trunkPart then
+                print("Found part using alternative name: " .. altName)
+                break
+            end
+        end
+
+        -- If still no part found, check player inventory directly
+        if not trunkPart then
+            print("No ambulance storage part found, checking player inventory only...")
+            local inventory = player:getInventory()
+            if not inventory then
+                player:Say("Cannot access my inventory to check supplies.")
+                print("Player inventory is null")
+                return false
+            end
+            local playerInventory = inventory:getItems()
+            local playerSupplyCounts = {}
+
+            -- Count supplies in player inventory
+            for i = 0, playerInventory:size()-1 do
+                local item = playerInventory:get(i)
+                local itemName = item:getName()
+
+                -- Count items with Jessica's prefix
+                if requiredSupplies[itemName] then
+                    playerSupplyCounts[itemName] = (playerSupplyCounts[itemName] or 0) + 1
+                end
+            end
+
+            -- Check if player has all required supplies
+            for itemName, requiredCount in pairs(requiredSupplies) do
+                local foundCount = playerSupplyCounts[itemName] or 0
+                if foundCount < requiredCount then
+                    missingSupplies[itemName] = requiredCount - foundCount
+                    allSuppliesPresent = false
+                    print("Missing supply in player inventory: " .. itemName .. " - Required: " .. requiredCount .. ", Found: " .. foundCount)
+                else
+                    print("Supply check (player inventory): " .. itemName .. " - Required: " .. requiredCount .. ", Found: " .. foundCount)
+                end
+            end
+
+            -- Notify player about the inventory check result
+            if allSuppliesPresent then
+                player:Say("Perfect! I have all the required medical supplies in my inventory.")
+                print("All supplies found in player inventory - quest can be completed")
+            else
+                player:Say("I'm missing some medical supplies from my inventory. Need to gather more.")
+                print("Missing supplies detected in player inventory")
+            end
+
+        end
+    end
+
     if trunkPart and trunkPart:getItemContainer() then
+        print("Accessing ambulance part: " .. trunkPart:getId())
+        player:Say("Checking ambulance storage for medical supplies...")
         local trunkItems = trunkPart:getItemContainer():getItems()
         local supplyCounts = {}
 
@@ -228,7 +350,16 @@ function JessicaSupplyRun.endPointCheck(player, flag)
             if foundCount < requiredCount then
                 missingSupplies[itemName] = requiredCount - foundCount
                 allSuppliesPresent = false
+                print("Missing supply detected: " .. itemName .. " - Required: " .. requiredCount .. ", Found: " .. foundCount)
             end
+            print("Supply check: " .. itemName .. " - Required: " .. requiredCount .. ", Found: " .. foundCount)
+        end
+
+        -- Notify player about ambulance storage check result
+        if allSuppliesPresent then
+            player:Say("Excellent! All required medical supplies are in the ambulance storage.")
+        else
+            player:Say("The ambulance is missing some medical supplies. Let me check my inventory...")
         end
     else
         print("Cannot access ambulance Stretcher")
@@ -237,7 +368,13 @@ function JessicaSupplyRun.endPointCheck(player, flag)
 
     if not allSuppliesPresent then
         -- Check on player inventory for supplies
-        local playerInventory = player:getInventory():getItems()
+        local inventory = player:getInventory()
+        if not inventory then
+            player:Say("Cannot access my inventory to check for missing supplies.")
+            print("Player inventory is null during missing supplies check")
+            return false
+        end
+        local playerInventory = inventory:getItems()
         local playerSupplyCounts = {}
 
         -- Count supplies in player inventory
@@ -264,12 +401,13 @@ function JessicaSupplyRun.endPointCheck(player, flag)
         -- If player has some/all missing supplies, inform them
         if next(stillMissingSupplies) then
             print("Missing some required supplies even after checking player inventory:")
-            player:Say("Some medical supplies are still missing. Check both the ambulance and your inventory.")
+            player:Say("Medical supply delivery failed! Some supplies are still missing from both the ambulance and my inventory.")
             for itemName, missingCount in pairs(stillMissingSupplies) do
                 print("  " .. itemName .. ": still missing " .. missingCount)
+                player:Say("Still need " .. missingCount .. " more " .. itemName)
             end
         else
-            player:Say("You have the missing supplies in your inventory. Please transfer them to the ambulance.")
+            player:Say("Good news! I have the missing supplies in my inventory, but they need to be in the ambulance for delivery.")
             print("Player has all missing supplies in inventory")
         end
 

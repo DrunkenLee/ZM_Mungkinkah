@@ -53,8 +53,8 @@ local function applyDamageBoost(weapon)
             local enchantMaxDamage = 0
 
             if weaponModData and weaponModData.savedDamageValues then
-                enchantMinDamage = weaponModData.savedDamageValues.minDamage
-                enchantMaxDamage = weaponModData.savedDamageValues.maxDamage
+                enchantMinDamage = weaponModData.savedDamageValues.minDamage - origMin
+                enchantMaxDamage = weaponModData.savedDamageValues.maxDamage - origMax
             end
             targetMin = targetMin + enchantMinDamage
             targetMax = targetMax + enchantMaxDamage

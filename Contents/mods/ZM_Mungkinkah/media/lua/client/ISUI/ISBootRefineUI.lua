@@ -515,14 +515,14 @@ function ISBootRefineUI:drawStatsComparison()
 
     local currentCost = 0
     if self.currentTab == "BOOTS" then
-        currentCost = 1000
-        self:drawText("Boots: 1,000 ServerPoints -> Discount Applied 50%", panelX + 20, textY, 0.9, 0.9, 0.6, 1, UIFont.Small)
+        currentCost = 2000
+        self:drawText("Boots: 2,000 ServerPoints -> No Discount Applied 0%", panelX + 20, textY, 0.9, 0.9, 0.6, 1, UIFont.Small)
     elseif self.currentTab == "VEST" then
-        currentCost = 1000
-        self:drawText("Vest: 1,000 ServerPoints -> Discount Applied 50%", panelX + 20, textY, 0.9, 0.9, 0.6, 1, UIFont.Small)
+        currentCost = 2000
+        self:drawText("Vest: 2,000 ServerPoints -> No Discount Applied 0%", panelX + 20, textY, 0.9, 0.9, 0.6, 1, UIFont.Small)
     elseif self.currentTab == "BAG" then
-        currentCost = 2500
-        self:drawText("Bag: 2,500 ServerPoints -> Discount Applied 50%", panelX + 20, textY, 0.9, 0.9, 0.6, 1, UIFont.Small)
+        currentCost = 5000
+        self:drawText("Bag: 5,000 ServerPoints -> No Discount Applied 0%", panelX + 20, textY, 0.9, 0.9, 0.6, 1, UIFont.Small)
     end
     textY = textY + lineHeight
 

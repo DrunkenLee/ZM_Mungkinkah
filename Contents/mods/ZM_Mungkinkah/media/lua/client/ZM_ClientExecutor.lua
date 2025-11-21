@@ -35,6 +35,161 @@ local RemoteFunctions = {
         end
     end,
 
+    ----------------------------------------- Quest Management Functions -----------------------------------------
+    resetquest = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] then
+            --print("Error: Missing parameters. Usage: resetquest <username> <questID>");
+            return;
+        end
+
+        local username = args[1];
+        local questID = args[2];
+
+        if player then
+            if SendQuestRequestToServer and SendQuestRequestToServer.reset then
+                SendQuestRequestToServer.reset(username, questID);
+                player:Say("Reset quest '" .. questID .. "' for player: " .. username);
+            else
+                player:Say("SendQuestRequestToServer.reset not available");
+                --print("Error: SendQuestRequestToServer.reset function not found");
+            end
+        end
+    end,
+
+    lockquest = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] then
+            --print("Error: Missing parameters. Usage: lockquest <username> <questID>");
+            return;
+        end
+
+        local username = args[1];
+        local questID = args[2];
+
+        if player then
+            if SendQuestRequestToServer and SendQuestRequestToServer.lock then
+                SendQuestRequestToServer.lock(username, questID);
+                player:Say("Locked quest '" .. questID .. "' for player: " .. username);
+            else
+                player:Say("SendQuestRequestToServer.lock not available");
+                --print("Error: SendQuestRequestToServer.lock function not found");
+            end
+        end
+    end,
+
+    unlockquest = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] then
+            --print("Error: Missing parameters. Usage: unlockquest <username> <questID>");
+            return;
+        end
+
+        local username = args[1];
+        local questID = args[2];
+
+        if player then
+            if SendQuestRequestToServer and SendQuestRequestToServer.unlock then
+                SendQuestRequestToServer.unlock(username, questID);
+                player:Say("Unlocked quest '" .. questID .. "' for player: " .. username);
+            else
+                player:Say("SendQuestRequestToServer.unlock not available");
+                --print("Error: SendQuestRequestToServer.unlock function not found");
+            end
+        end
+    end,
+    ----------------------------------------- End of Quest Management Functions -----------------------------------------
+
+    ----------------------------------------- Task Management Functions -----------------------------------------
+    unlocktask = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] or not args[3] then
+            --print("Error: Missing parameters. Usage: unlocktask <username> <questID> <taskID>");
+            return;
+        end
+
+        local username = args[1];
+        local questID = args[2];
+        local taskID = args[3];
+
+        if player then
+            if SendTaskRequestToServer and SendTaskRequestToServer.unlock then
+                SendTaskRequestToServer.unlock(username, questID, taskID);
+                player:Say("Unlocked task '" .. taskID .. "' in quest '" .. questID .. "' for player: " .. username);
+            else
+                player:Say("SendTaskRequestToServer.unlock not available");
+                --print("Error: SendTaskRequestToServer.unlock function not found");
+            end
+        end
+    end,
+
+    locktask = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] or not args[3] then
+            --print("Error: Missing parameters. Usage: locktask <username> <questID> <taskID>");
+            return;
+        end
+
+        local username = args[1];
+        local questID = args[2];
+        local taskID = args[3];
+
+        if player then
+            if SendTaskRequestToServer and SendTaskRequestToServer.lock then
+                SendTaskRequestToServer.lock(username, questID, taskID);
+                player:Say("Locked task '" .. taskID .. "' in quest '" .. questID .. "' for player: " .. username);
+            else
+                player:Say("SendTaskRequestToServer.lock not available");
+                --print("Error: SendTaskRequestToServer.lock function not found");
+            end
+        end
+    end,
+
+    completetask = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] or not args[3] then
+            --print("Error: Missing parameters. Usage: completetask <username> <questID> <taskID>");
+            return;
+        end
+
+        local username = args[1];
+        local questID = args[2];
+        local taskID = args[3];
+
+        if player then
+            if SendTaskRequestToServer and SendTaskRequestToServer.complete then
+                SendTaskRequestToServer.complete(username, questID, taskID);
+                player:Say("Completed task '" .. taskID .. "' in quest '" .. questID .. "' for player: " .. username);
+            else
+                player:Say("SendTaskRequestToServer.complete not available");
+                --print("Error: SendTaskRequestToServer.complete function not found");
+            end
+        end
+    end,
+
+    resettask = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] or not args[2] or not args[3] then
+            --print("Error: Missing parameters. Usage: resettask <username> <questID> <taskID>");
+            return;
+        end
+
+        local username = args[1];
+        local questID = args[2];
+        local taskID = args[3];
+
+        if player then
+            if SendTaskRequestToServer and SendTaskRequestToServer.reset then
+                SendTaskRequestToServer.reset(username, questID, taskID);
+                player:Say("Reset task '" .. taskID .. "' in quest '" .. questID .. "' for player: " .. username);
+            else
+                player:Say("SendTaskRequestToServer.reset not available");
+                --print("Error: SendTaskRequestToServer.reset function not found");
+            end
+        end
+    end,
+    ----------------------------------------- End of Task Management Functions -----------------------------------------
+
     togglezmflag = function(args)
         if not _G.PlayerFlagHandler then
             --print("Error: PlayerFlagHandler not found in global scope");
@@ -179,7 +334,7 @@ local RemoteFunctions = {
         player:Say("Zone check complete - Zone 1: " .. counts.Horde1 .. " players, Zone 2: " .. counts.Horde2 .. " players")
     end,
 
-    -- ServerPoints Management Functions
+    ----------------------------------------- ServerPoints Management Functions -----------------------------------------
     addplayerpoints = function(args)
         local player = getSpecificPlayer(0);
         if not args[1] or not args[2] then
@@ -313,6 +468,68 @@ local RemoteFunctions = {
             sendClientCommand("ServerRaidPoints", "withdraw", { username });
             player:Say("Raid withdrawal request sent for " .. username);
             --print("Raid withdrawal request sent for " .. username);
+        end
+    end,
+
+    dumpPlayerPoints = function(args)
+        local player = getSpecificPlayer(0);
+        if player then
+            sendClientCommand("ServerPoints", "bridge", {})
+        end
+    end,
+
+    withdrawauctionpoints = function(args)
+        local player = getSpecificPlayer(0);
+        if not args[1] then
+            --print("Error: No username provided.");
+            return;
+        end
+
+        local username = args[1];
+
+        if player then
+            if GlobalMethods and GlobalMethods.withdrawAuctionPoints then
+                GlobalMethods.withdrawAuctionPoints(username);
+                player:Say("Auction withdrawal request sent for " .. username);
+            else
+                player:Say("GlobalMethods.withdrawAuctionPoints not available");
+                --print("Error: GlobalMethods.withdrawAuctionPoints function not found");
+            end
+        end
+    end,
+    -----------------------------------------  End of ServerPoints Management Functions -----------------------------------------
+
+    -- allow can be: true/false, 1/0, "true"/"false", "yes"/"no", "on"/"off"
+    setrestrictedgearallow = function(args)
+        local player = getSpecificPlayer(0)
+        if not args[1] or not args[2] or args[3] == nil then
+            --print("Error: Usage setrestrictedgearallow <username> <itemType> <allow>")
+            return
+        end
+
+        local username = tostring(args[1])
+        local itemType = tostring(args[2])
+        local allowRaw = args[3]
+
+        local allow = false
+        if type(allowRaw) == "boolean" then
+            allow = allowRaw
+        elseif type(allowRaw) == "number" then
+            allow = allowRaw ~= 0
+        elseif type(allowRaw) == "string" then
+            local s = allowRaw:lower()
+            allow = (s == "true" or s == "1" or s == "yes" or s == "on")
+        end
+
+        if ZMEquipmentHandler and ZMEquipmentHandler.setRestrictedGearAllow then
+            ZMEquipmentHandler.setRestrictedGearAllow(username, itemType, allow)
+            if player then
+                player:Say(((allow and "Allowed " or "Blocked ") .. itemType .. " for " .. username))
+            end
+        else
+            if player then
+                player:Say("Equipment handler not available")
+            end
         end
     end,
     -- Add more functions as needed

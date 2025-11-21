@@ -134,12 +134,12 @@ local function ZM_UpdateOnHitZombie(zombie, attacker, bodyPart, weapon)
     local weaponName = "Unknown"
 
     if weapon then
-      --print("ADA KOK WEAPON NYA")
+      print("ADA KOK WEAPON NYA")
       weaponName = weapon:getName() or "Unknown"
     end
 
     if string.find(weaponName, "Legend") or string.find(weaponName, "+10") then
-      --print("Legendary weapon detected: " .. weaponName)
+      print("Legendary weapon detected: " .. weaponName)
       usingLegendWeapon = true
     end
 
@@ -169,7 +169,7 @@ local function ZM_OnWeaponHitCharacter(attacker, target, weapon, damage)
     end
 end
 
--- Events.OnWeaponHitCharacter.Add(ZM_OnWeaponHitCharacter) -- disabled due to contra with new projectile
+-- Events.OnWeaponHitCharacter.Add(ZM_OnWeaponHitCharacter)-- disabled due to contra with new projectile
 
 -- Events.OnHitZombie.Add(ZM_UpdateOnHitZombie)
 

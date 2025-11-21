@@ -57,6 +57,25 @@ local function onClientCommand(module, command, player, args)
           ", Condition: " .. condition .. "%" ..
           ", Points: " .. finalPoints)
 
+      -- Log to JSON file for admin purposes
+      local logFile = getFileWriter("ZM_Autoshop_VehicleRemoval.json", true, false)
+      if logFile then
+        local timestamp = os.time()
+        local logEntry = string.format('{"timestamp":%d,"player":"%s","vehicle":"%s","condition":%d,"points":%d,"x":%.2f,"y":%.2f,"z":%.2f,"vehicleID":%d}\n',
+          timestamp,
+          player:getUsername(),
+          scriptName,
+          condition,
+          finalPoints,
+          vehicleX,
+          vehicleY,
+          vehicleZ,
+          args.vehicleID
+        )
+        logFile:write(logEntry)
+        logFile:close()
+      end
+
       sendServerCommand(player, "ZM_Autoshop", "VehicleRemoved", {
         success = true,
         message = "The vehicle has been processed and removed.",

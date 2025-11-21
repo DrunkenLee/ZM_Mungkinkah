@@ -1,0 +1,29 @@
+module ZM_Mungkinkah
+{
+    imports
+    {
+        Base
+    }
+
+    item JessicaPill_GiantOx
+    {
+        DisplayName = Jessica Pill Giant Ox,
+        Weight = 0.05,
+        Type = Normal,
+        Icon = Pills,
+        DisplayCategory = Food,
+        Tooltip = A mystical pill that grants unlimited carrying capacity for 60 minutes. One-time use only.,
+        WorldStaticModel = PillsVitamins,
+    }
+
+    item JessicaPill_OakRemedy
+    {
+        DisplayName = Jessica Pill Oak Remedy,
+        Weight = 0.05,
+        Type = Normal,
+        Icon = Pills,
+        DisplayCategory = Food,
+        Tooltip = A mystical pill that resets your body weight to normal (75kg). One-time use only.,
+        WorldStaticModel = PillsVitamins,
+    }
+}

@@ -4,7 +4,7 @@ ServerZM_Ticket.used = {}  -- Initialize this immediately
 ServerZM_Ticket.loaded = true  -- Set to true by default to avoid issues
 
 
-ServerZM_Ticket.saveData = function()
+ServerZM_Ticket.saveData = function(player)
     -- Use ModData API instead of file I/O for better reliability
     if not ServerZM_Ticket.used then
         ServerZM_Ticket.used = {}
@@ -20,9 +20,12 @@ ServerZM_Ticket.saveData = function()
         print("   Ticket: " .. id .. ", User: " .. tostring(user))
     end
 
-    sendServerCommand("ZM_Ticket", "saveusedticketsresponse", {
-        usedTickets = ServerZM_Ticket.used
-    })
+    -- Only send to the specific player if provided
+    if player then
+        sendServerCommand(player, "ZM_Ticket", "saveusedticketsresponse", {
+            usedTickets = ServerZM_Ticket.used
+        })
+    end
     return true
 end
 
@@ -37,7 +40,7 @@ ServerZM_Ticket.loadData = function()
 end
 
 
-ServerZM_Ticket.addUsedTicket = function(ticketID, username)
+ServerZM_Ticket.addUsedTicket = function(ticketID, username, player)
     if not ServerZM_Ticket.loaded then
         ServerZM_Ticket.loadData()
     end
@@ -54,7 +57,7 @@ ServerZM_Ticket.addUsedTicket = function(ticketID, username)
     print("[ZM_Ticket]: Added ticket:", ticketID, "for user:", username)
     print("[ZM_Ticket]: Current used tickets table contains", tableSize(ServerZM_Ticket.used), "entries")
 
-    ServerZM_Ticket.saveData()
+    ServerZM_Ticket.saveData(player)
     return true
 end
 
@@ -76,10 +79,11 @@ ServerZM_Ticket.isTicketUsed = function(ticketID)
         return false
     end
 
-    sendServerCommand("ZM_Ticket", "isTicketUsedResponse", {
-        ticketID = ServerZM_Ticket.used[ticketID],
-        used = ServerZM_Ticket.used[ticketID] ~= nil
-    })
+    -- REMOVED: This was broadcasting to all players
+    -- sendServerCommand("ZM_Ticket", "isTicketUsedResponse", {
+    --     ticketID = ServerZM_Ticket.used[ticketID],
+    --     used = ServerZM_Ticket.used[ticketID] ~= nil
+    -- })
     return ServerZM_Ticket.used[ticketID] or false
 end
 
@@ -101,7 +105,7 @@ Events.OnClientCommand.Add(function(module, command, player, args)
                 print("ERROR: Missing parameters in addusedticket command.")
                 return
             end
-            ServerZM_Ticket.addUsedTicket(ticketID, username, ticketType)
+            ServerZM_Ticket.addUsedTicket(ticketID, username, player)
 
         elseif command == "checkusedticket" then
             local ticketID = args.ticketID

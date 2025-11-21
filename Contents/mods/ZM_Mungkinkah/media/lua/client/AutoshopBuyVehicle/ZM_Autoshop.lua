@@ -177,8 +177,9 @@ function ZM_Autoshop.checkVehicleInEndpoint(player, vehicleScriptNames, endPoint
                 z = vehicleZ
               })
 
-              player:Say("Processing vehicle removal...")
-              print("Sent vehicle removal request to server for: " .. scriptName)
+              -- player:Say("Processing vehicle removal...")
+              -- print("[ZM_Autoshop] - Player " .. player:getUsername() .. " sold vehicle " .. scriptName .. " (ID: " .. vehicleID .. ") for " .. finalPoints .. " points.")
+              -- print("[ZM_Autoshop] - Player " .. player:getUsername() .. " sold vehicle " .. scriptName .. " (ID: " .. vehicleID .. ") for " .. finalPoints .. " points.")
               break
             end
           end
